@@ -1,0 +1,99 @@
+import { NextRequest } from 'next/server';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { events } from '@/lib/schema';
+import { updateEventSchema } from '@/lib/validators';
+import { jsonResponse, errorResponse, parseBody, requireAdmin } from '@/lib/api-helpers';
+
+interface RouteContext {
+  params: Promise<{ eventId: string }>;
+}
+
+export async function GET(_request: NextRequest, context: RouteContext) {
+  try {
+    const { eventId } = await context.params;
+
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+
+    if (!event) {
+      return errorResponse('Event not found', 404);
+    }
+
+    return jsonResponse({ event });
+  } catch (error) {
+    console.error('[GET /api/events/:id]', error);
+    return errorResponse('Internal server error', 500);
+  }
+}
+
+export async function PUT(request: NextRequest, context: RouteContext) {
+  try {
+    const session = await requireAdmin(request.headers);
+    if (!session) {
+      return errorResponse('Unauthorized. Admin access required.', 403);
+    }
+
+    const { eventId } = await context.params;
+
+    // Verify event exists
+    const [existing] = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+
+    if (!existing) {
+      return errorResponse('Event not found', 404);
+    }
+
+    const parsed = await parseBody(request, updateEventSchema);
+    if (parsed.error) return parsed.error;
+
+    const [updated] = await db
+      .update(events)
+      .set({ ...parsed.data, updatedAt: Date.now() })
+      .where(eq(events.id, eventId))
+      .returning();
+
+    return jsonResponse({ event: updated });
+  } catch (error) {
+    console.error('[PUT /api/events/:id]', error);
+    return errorResponse('Internal server error', 500);
+  }
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
+    const session = await requireAdmin(request.headers);
+    if (!session) {
+      return errorResponse('Unauthorized. Admin access required.', 403);
+    }
+
+    const { eventId } = await context.params;
+
+    const [existing] = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+
+    if (!existing) {
+      return errorResponse('Event not found', 404);
+    }
+
+    // Soft delete — archive the event
+    await db
+      .update(events)
+      .set({ status: 'archived', updatedAt: Date.now() })
+      .where(eq(events.id, eventId));
+
+    return jsonResponse({ message: 'Event archived successfully' });
+  } catch (error) {
+    console.error('[DELETE /api/events/:id]', error);
+    return errorResponse('Internal server error', 500);
+  }
+}
