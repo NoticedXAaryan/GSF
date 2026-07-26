@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const FAQS = [
   {
@@ -29,74 +31,106 @@ const FAQS = [
 
 export default function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Refs for accordion content to animate height
+  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.faq-header', {
+        scrollTrigger: {
+          trigger: '.faq-section',
+          start: 'top 75%',
+        },
+        y: 40,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out'
+      });
+
+      gsap.from('.faq-item', {
+        scrollTrigger: {
+          trigger: '.faq-list',
+          start: 'top 80%',
+        },
+        x: -30,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: 'power2.out'
+      });
+    }, containerRef);
+    return () => ctx.revert();
+  }, []);
+
+  const toggleAccordion = (idx: number) => {
+    if (openIdx === idx) {
+      // Close currently open
+      gsap.to(contentRefs.current[idx], { height: 0, opacity: 0, duration: 0.3, ease: 'power2.inOut' });
+      setOpenIdx(null);
+    } else {
+      // Close previous
+      if (openIdx !== null) {
+        gsap.to(contentRefs.current[openIdx], { height: 0, opacity: 0, duration: 0.3, ease: 'power2.inOut' });
+      }
+      // Open new
+      setOpenIdx(idx);
+      gsap.fromTo(contentRefs.current[idx], 
+        { height: 0, opacity: 0 },
+        { height: 'auto', opacity: 1, duration: 0.4, ease: 'power2.out' }
+      );
+    }
+  };
 
   return (
-    <section id="faq" className="py-24 md:py-32 relative bg-[#0A0A0A]">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-      <div className="max-w-3xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <span className="text-blue-500 font-medium tracking-wider uppercase text-sm mb-4 block">
-            Common Questions
+    <section ref={containerRef} id="faq" className="faq-section py-32 md:py-48 relative bg-ink-navy border-t border-white/5">
+      <div className="max-w-4xl mx-auto px-6">
+        
+        <div className="text-center mb-20">
+          <span className="faq-header font-mono text-hyper-cyan font-bold uppercase tracking-widest text-sm mb-6 block">
+            04 — Common Questions
           </span>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-6">
-            FAQ
+          <h2 className="faq-header font-display text-5xl md:text-7xl font-bold tracking-tight text-white">
+            Logistics & Details
           </h2>
-        </motion.div>
+        </div>
 
-        <div className="space-y-4">
+        <div className="faq-list space-y-4">
           {FAQS.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className={`rounded-xl border transition-all duration-200 ${
+                className={`faq-item border transition-colors duration-300 ${
                   isOpen
-                    ? 'bg-white/[0.04] border-white/20'
-                    : 'bg-white/[0.02] border-white/10 hover:border-white/20'
+                    ? 'bg-ink-deep border-hyper-cyan/30'
+                    : 'bg-transparent border-white/10 hover:border-white/30'
                 }`}
               >
                 <button
-                  className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
-                  onClick={() => setOpenIdx(isOpen ? null : idx)}
+                  className="w-full flex items-center justify-between p-8 text-left focus:outline-none group"
+                  onClick={() => toggleAccordion(idx)}
                 >
-                  <span className="font-semibold text-lg text-white">
+                  <span className={`font-display text-2xl font-bold transition-colors ${isOpen ? 'text-hyper-cyan' : 'text-white group-hover:text-white/80'}`}>
                     {faq.q}
                   </span>
-                  <motion.div
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ChevronDown className="w-5 h-5 text-white/40" />
-                  </motion.div>
+                  <div className="relative w-6 h-6 flex items-center justify-center shrink-0 ml-6">
+                    <span className="absolute w-full h-0.5 bg-white transition-transform duration-300" />
+                    <span className={`absolute w-full h-0.5 bg-white transition-transform duration-300 ${isOpen ? 'rotate-0' : 'rotate-90'}`} />
+                  </div>
                 </button>
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-6 pt-0 text-white/60 leading-relaxed">
-                        {faq.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                <div 
+                  ref={el => { contentRefs.current[idx] = el; }}
+                  className="overflow-hidden"
+                  style={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+                >
+                  <div className="px-8 pb-8 pt-0 text-white/60 text-lg leading-relaxed font-body">
+                    {faq.a}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>

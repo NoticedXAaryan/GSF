@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter, JetBrains_Mono } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
+import SmoothScroll from '@/components/SmoothScroll';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -52,12 +53,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="font-body bg-ink-navy text-cloud-white antialiased min-h-screen flex flex-col">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+      <body className="font-body bg-[#060608] text-cloud-white antialiased min-h-screen flex flex-col">
+        <SmoothScroll>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </SmoothScroll>
       </body>
     </html>
   );
