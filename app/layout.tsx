@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
+import { AuthProvider } from '@/lib/auth-context';
 import './globals.css';
 
 const playfair = Playfair_Display({
@@ -15,8 +16,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Startup India Fest | Parul University',
-  description: 'Join the biggest startup movement at Parul University Goa Campus. Pitch your idea, attend masterclasses, and explore the startup ecosystem.',
+  title: 'Goa Startup Festival 2026 | Parul University',
+  description:
+    'Join the biggest startup movement at Parul University Goa Campus. Pitch your idea, attend masterclasses, and explore the startup ecosystem.',
 };
 
 export default function RootLayout({
@@ -26,8 +28,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
-      <body className="font-sans antialiased bg-[#050505] text-white overflow-x-hidden" suppressHydrationWarning>
-        {children}
+      <body
+        className="font-sans antialiased bg-[#050505] text-white overflow-x-hidden"
+        suppressHydrationWarning
+      >
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 const PROTECTED_ROUTES = ['/dashboard', '/admin', '/volunteer'];
-const AUTH_ROUTES = ['/login', '/register'];
+const AUTH_ROUTES = ['/login', '/signup', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
