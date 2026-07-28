@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from '@/lib/auth-client';
 import { Calendar, FileText, QrCode, Megaphone, LogOut, Loader2, MapPin, Clock, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
@@ -89,57 +89,44 @@ export default function UserDashboard() {
   // Announcements state
   const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      const res = await fetch('/api/user/profile');
-      if (res.ok) {
-        const data = await res.json();
-        setProfile(data);
-        if (!data.user.profileComplete) {
-          setShowProfileForm(true);
-        } else {
-          setShowProfileForm(false);
-        }
-      }
-    } catch {
-      console.error('Failed to fetch profile');
-    }
-  }, []);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [eventsRes, appsRes, announcementsRes] = await Promise.all([
-        fetch('/api/events?status=published'),
-        fetch('/api/user/applications'),
-        fetch('/api/announcements'),
-      ]);
-
-      if (eventsRes.ok) {
-        const eventsData = await eventsRes.json();
-        setEvents(eventsData);
-      }
-      if (appsRes.ok) {
-        const appsData = await appsRes.json();
-        setApplications(appsData);
-      }
-      if (announcementsRes.ok) {
-        const announcementsData = await announcementsRes.json();
-        setAnnouncements(announcementsData);
-      }
-    } catch {
-      setError('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    if (!isPending && session) {
-      fetchProfile();
-      fetchData();
+    if (isPending || !session) return;
+    let ignore = false;
+
+    async function loadAll() {
+      try {
+        const profileRes = await fetch('/api/user/profile');
+        if (profileRes.ok && !ignore) {
+          const data = await profileRes.json();
+          setProfile(data);
+          setShowProfileForm(!data.user.profileComplete);
+        }
+      } catch {
+        console.error('Failed to fetch profile');
+      }
+
+      try {
+        const [eventsRes, appsRes, announcementsRes] = await Promise.all([
+          fetch('/api/events?status=published'),
+          fetch('/api/user/applications'),
+          fetch('/api/announcements'),
+        ]);
+
+        if (!ignore) {
+          if (eventsRes.ok) setEvents(await eventsRes.json());
+          if (appsRes.ok) setApplications(await appsRes.json());
+          if (announcementsRes.ok) setAnnouncements(await announcementsRes.json());
+        }
+      } catch {
+        if (!ignore) setError('Failed to load dashboard data');
+      } finally {
+        if (!ignore) setLoading(false);
+      }
     }
-  }, [isPending, session, fetchProfile, fetchData]);
+
+    loadAll();
+    return () => { ignore = true; };
+  }, [isPending, session]);
 
   // Profile completion
   async function handleProfileSubmit(e: React.FormEvent) {
@@ -171,7 +158,13 @@ export default function UserDashboard() {
         console.warn('Pass issuance:', data.error);
       }
 
-      await fetchProfile();
+      // Refresh profile data
+      const profileRes = await fetch('/api/user/profile');
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        setProfile(data);
+        setShowProfileForm(!data.user.profileComplete);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(message);

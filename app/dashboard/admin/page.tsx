@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!isPending && !session) {
       router.push('/dashboard');
-    } else if (session && session.user.role !== 'Admin' && session.user.role !== 'Lead') {
+    } else if (session && (session.user.role ?? '') !== 'Admin' && (session.user.role ?? '') !== 'Lead') {
       router.push('/dashboard/user');
     }
   }, [session, isPending, router]);

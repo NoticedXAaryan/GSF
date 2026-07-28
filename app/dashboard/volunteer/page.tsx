@@ -53,7 +53,7 @@ export default function VolunteerDashboard() {
     if (!isPending) {
       if (!session) {
         router.push('/login');
-      } else if (!['Volunteer', 'Admin', 'Lead'].includes(session.user.role)) {
+      } else if (!['Volunteer', 'Admin', 'Lead'].includes(session.user.role ?? '')) {
         router.push('/dashboard/user');
       }
     }
@@ -93,75 +93,7 @@ export default function VolunteerDashboard() {
     }
   }, [currentResult]);
 
-  // 4. Scanner Lifecycle
-  useEffect(() => {
-    let mounted = true;
-    
-    const startScanner = async () => {
-      if (activeTab !== 'scanner' || !selectedEventId || isProcessing) {
-        if (scannerRef.current && scannerRef.current.isScanning) {
-          try {
-            await scannerRef.current.stop();
-            setIsScanning(false);
-          } catch (err) {
-            console.error('Error stopping scanner', err);
-          }
-        }
-        return;
-      }
-      
-      // We only start if it's not already scanning
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode('qr-reader');
-      }
-      
-      if (!scannerRef.current.isScanning) {
-        try {
-          await scannerRef.current.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: 250 },
-            handleScanSuccess,
-            (errorMessage) => {
-              // We ignore normal frame errors as they are frequent
-            }
-          );
-          if (mounted) {
-            setIsScanning(true);
-            setCameraPermission(true);
-            setScanError(null);
-          }
-        } catch (err: any) {
-          console.error('Error starting scanner:', err);
-          if (mounted) {
-            setIsScanning(false);
-            setCameraPermission(false);
-            setScanError(err?.message || 'Failed to access camera.');
-          }
-        }
-      }
-    };
-    
-    // We delay starting slightly to ensure the DOM div is ready
-    const timerId = setTimeout(() => {
-      startScanner();
-    }, 100);
-    
-    return () => {
-      mounted = false;
-      clearTimeout(timerId);
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(console.error);
-        setIsScanning(false);
-      }
-    };
-  }, [activeTab, selectedEventId, isProcessing]);
-
-  const handleScanSuccess = async (decodedText: string) => {
-    if (isProcessing) return; // Prevent double scans
-    
-    await processToken(decodedText);
-  };
-  
+  // ── Scan processing (must be defined before scanner useEffect) ──
   const processToken = async (token: string) => {
     if (!selectedEventId) {
       alert("Please select an event first.");
@@ -184,16 +116,13 @@ export default function VolunteerDashboard() {
       const newResult: ScanResult = {
         id: Math.random().toString(36).substring(7),
         timestamp: new Date(),
-        status: res.ok ? 'allowed' : (data.code === 'ALREADY_SCANNED' ? 'already_checked_in' : 'denied'),
-        userName: data.user?.name || data.userName || 'Unknown User',
-        eventName: event?.name || 'Unknown Event',
-        reason: data.error || 'Access Denied',
+        status: data.result === 'allowed' ? 'allowed' : (data.result === 'already_checked_in' ? 'already_checked_in' : 'denied'),
+        userName: data.user?.name || 'Unknown User',
+        eventName: event?.name || data.event || 'Unknown Event',
+        reason: data.reason || '',
       };
       
-      // Add to history
       setScanHistory(prev => [newResult, ...prev]);
-      
-      // Show card
       setCurrentResult(newResult);
       
     } catch (err) {
@@ -212,6 +141,75 @@ export default function VolunteerDashboard() {
       setManualToken('');
     }
   };
+
+  // Keep a ref to processToken so the scanner callback always has the latest
+  const processTokenRef = useRef(processToken);
+  useEffect(() => {
+    processTokenRef.current = processToken;
+  });
+
+  // 4. Scanner Lifecycle
+  useEffect(() => {
+    let mounted = true;
+    
+    const startScanner = async () => {
+      if (activeTab !== 'scanner' || !selectedEventId || isProcessing) {
+        if (scannerRef.current && scannerRef.current.isScanning) {
+          try {
+            await scannerRef.current.stop();
+            setIsScanning(false);
+          } catch (err) {
+            console.error('Error stopping scanner', err);
+          }
+        }
+        return;
+      }
+      
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode('qr-reader');
+      }
+      
+      if (!scannerRef.current.isScanning) {
+        try {
+          await scannerRef.current.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: 250 },
+            (decodedText: string) => {
+              processTokenRef.current(decodedText);
+            },
+            () => {
+              // Ignore normal frame decode errors
+            }
+          );
+          if (mounted) {
+            setIsScanning(true);
+            setCameraPermission(true);
+            setScanError(null);
+          }
+        } catch (err: unknown) {
+          console.error('Error starting scanner:', err);
+          if (mounted) {
+            setIsScanning(false);
+            setCameraPermission(false);
+            setScanError(err instanceof Error ? err.message : 'Failed to access camera.');
+          }
+        }
+      }
+    };
+    
+    const timerId = setTimeout(() => {
+      startScanner();
+    }, 100);
+    
+    return () => {
+      mounted = false;
+      clearTimeout(timerId);
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().catch(console.error);
+        setIsScanning(false);
+      }
+    };
+  }, [activeTab, selectedEventId, isProcessing]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
