@@ -41,6 +41,7 @@ export const applicationStatusEnum = pgEnum('application_status', [
   'waitlisted',
   'rejected',
   'not_eligible',
+  'withdrawn',
 ]);
 
 export const scanResultEnum = pgEnum('scan_result', [

@@ -17,8 +17,6 @@ export const completeProfileSchema = z.object({
     .min(10, 'Phone number must be at least 10 digits')
     .regex(phoneRegex, 'Invalid phone number format'),
   collegeDept: z.string().max(100).optional().default(''),
-  year: z.string().max(20).optional().default(''),
-  organization: z.string().max(200).optional().default(''),
 });
 
 // ────────────────────────────────────────────────────────────

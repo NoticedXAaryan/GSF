@@ -3,6 +3,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, applications } from '@/lib/schema';
 import { jsonResponse, errorResponse, requireSession, generateId } from '@/lib/api-helpers';
+import { sendApplicationConfirmation } from '@/lib/email';
 
 interface RouteContext {
   params: Promise<{ eventId: string }>;
@@ -83,6 +84,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
       return application;
     });
+
+    // ── Fire-and-forget: send application confirmation email ──
+    sendApplicationConfirmation(
+      session.user.email,
+      session.user.name,
+      event.name,
+      event.requiresShortlisting ?? false
+    ).catch((err) => console.error('[apply] Email send failed:', err));
 
     return jsonResponse({ application: result }, 201);
   } catch (error) {

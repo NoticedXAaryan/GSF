@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { user, clearancePasses } from '@/lib/schema';
+import { user } from '@/lib/schema';
 import { completeProfileSchema } from '@/lib/validators';
 import {
   jsonResponse,
@@ -10,7 +10,6 @@ import {
   requireSession,
   generatePassId,
   generateQRToken,
-  generateId,
 } from '@/lib/api-helpers';
 
 /**
@@ -51,44 +50,22 @@ export async function POST(request: NextRequest) {
     const now = Date.now();
 
     const result = await db.transaction(async (tx) => {
-      // Update user profile
       const [updatedUser] = await tx
         .update(user)
         .set({
           phone: data.phone.trim(),
           collegeDept: data.collegeDept?.trim() || '',
-          year: data.year?.trim() || '',
-          organization: data.organization?.trim() || '',
-          passId,
           profileComplete: true,
           updatedAt: new Date(),
         })
         .where(eq(user.id, userId))
         .returning();
 
-      // Create clearance pass
-      const [pass] = await tx
-        .insert(clearancePasses)
-        .values({
-          id: generateId(),
-          uid: userId,
-          passId,
-          qrToken,
-          issuedAt: now,
-          revoked: false,
-          userName: session.user.name,
-          userEmail: session.user.email,
-          userRole: session.user.role,
-        })
-        .returning();
-
-      return { user: updatedUser, pass };
+      return { user: updatedUser };
     });
 
     return jsonResponse(
       {
-        passId,
-        qrToken,
         user: {
           id: result.user.id,
           name: result.user.name,

@@ -8,6 +8,14 @@ export const auth = betterAuth({
     provider: 'pg',
   }),
 
+  // Enable account linking so Google auth doesn't fail if the email is already in the database
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+    },
+  },
+
   // ── Email/Password & Password Reset ──
   emailAndPassword: {
     enabled: true,
@@ -18,12 +26,16 @@ export const auth = betterAuth({
   },
 
   // ── Google OAuth ──
+  // Domain restriction is controlled by GOOGLE_OAUTH_RESTRICT_DOMAIN env var.
+  // When empty/absent: any Google account can sign in (for testing).
+  // When set to e.g. 'goa.paruluniversity.ac.in': only that domain is allowed.
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      // Restrict to Parul University Goa campus domain
-      hd: 'goa.paruluniversity.ac.in',
+      ...(process.env.GOOGLE_OAUTH_RESTRICT_DOMAIN
+        ? { hd: process.env.GOOGLE_OAUTH_RESTRICT_DOMAIN }
+        : {}),
       prompt: 'select_account',
     },
   },
@@ -46,7 +58,7 @@ export const auth = betterAuth({
         type: 'string',
         required: false,
         defaultValue: '',
-        fieldName: 'college_dept',
+        fieldName: 'college_dept', // Map to DB schema
       },
       year: {
         type: 'string',
@@ -63,14 +75,14 @@ export const auth = betterAuth({
         required: false,
         defaultValue: '',
         input: false, // Server-generated
-        fieldName: 'pass_id',
+        fieldName: 'pass_id', // Map to DB schema
       },
       profileComplete: {
         type: 'boolean',
         required: false,
         defaultValue: false,
         input: false, // Server-controlled
-        fieldName: 'profile_complete',
+        fieldName: 'profile_complete', // Map to DB schema
       },
     },
   },

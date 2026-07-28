@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { applications } from '@/lib/schema';
+import { applications, events } from '@/lib/schema';
+import { sendApplicationStatusUpdate } from '@/lib/email';
 import { updateApplicationSchema } from '@/lib/validators';
 import {
   jsonResponse,
@@ -68,9 +69,14 @@ export async function PATCH(request: NextRequest, _context: RouteContext) {
 
     const { applicationId, status, notes } = parsed.data;
 
-    // Verify exists
+    // Verify exists and get user details for the notification email
     const [existing] = await db
-      .select({ id: applications.id })
+      .select({
+        id: applications.id,
+        userEmail: applications.userEmail,
+        userName: applications.userName,
+        subEventId: applications.subEventId,
+      })
       .from(applications)
       .where(eq(applications.id, applicationId))
       .limit(1);
@@ -89,6 +95,24 @@ export async function PATCH(request: NextRequest, _context: RouteContext) {
       })
       .where(eq(applications.id, applicationId))
       .returning();
+
+    // ── Fire-and-forget: send status update email ──
+    // Fetch event name for a meaningful notification
+    db.select({ name: events.name })
+      .from(events)
+      .where(eq(events.id, existing.subEventId))
+      .limit(1)
+      .then(([event]) => {
+        const eventName = event?.name ?? 'an event';
+        return sendApplicationStatusUpdate(
+          existing.userEmail,
+          existing.userName,
+          eventName,
+          status,
+          notes
+        );
+      })
+      .catch((err) => console.error('[applications PATCH] Email send failed:', err));
 
     return jsonResponse({ application: updated });
   } catch (error) {
