@@ -1,6 +1,7 @@
 import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { NextResponse } from 'next/server';
+import { requireSession } from '@/lib/api-helpers';
 
 // GSF 2026 Core Context extracted from provided PDFs
 const SYSTEM_PROMPT = `
@@ -58,6 +59,11 @@ Be concise, highly professional, and encouraging. Use bullet points if listing m
 
 export async function POST(req: Request) {
   try {
+    const session = await requireSession(req.headers);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { messages } = await req.json();
 
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
