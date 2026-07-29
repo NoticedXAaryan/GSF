@@ -113,9 +113,9 @@ export default function UserDashboard() {
         ]);
 
         if (!ignore) {
-          if (eventsRes.ok) setEvents(await eventsRes.json());
-          if (appsRes.ok) setApplications(await appsRes.json());
-          if (announcementsRes.ok) setAnnouncements(await announcementsRes.json());
+          if (eventsRes.ok) { const data = await eventsRes.json(); setEvents(data.events || data); }
+          if (appsRes.ok) { const data = await appsRes.json(); setApplications(data.applications || data); }
+          if (announcementsRes.ok) { const data = await announcementsRes.json(); setAnnouncements(data.announcements || data); }
         }
       } catch {
         if (!ignore) setError('Failed to load dashboard data');
