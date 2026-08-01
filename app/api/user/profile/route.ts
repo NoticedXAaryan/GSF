@@ -1,16 +1,16 @@
 import { NextRequest } from 'next/server';
-import { eq, desc } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { user, clearancePasses, applications, events } from '@/lib/schema';
-import { jsonResponse, errorResponse, requireSession } from '@/lib/api-helpers';
+import { user, clearancePasses } from '@/lib/schema';
+import { getSession, jsonResponse, errorResponse } from '@/lib/api-helpers';
 
 /**
  * GET /api/user/profile
- * Returns the authenticated user's full profile, clearance pass, and applications.
+ * Returns the authenticated user's profile and clearance pass details (if issued).
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireSession(request.headers);
+    const session = await getSession(request.headers);
     if (!session) {
       return errorResponse('Authentication required', 401);
     }
@@ -23,15 +23,11 @@ export async function GET(request: NextRequest) {
         id: user.id,
         name: user.name,
         email: user.email,
-        image: user.image,
         role: user.role,
         phone: user.phone,
         collegeDept: user.collegeDept,
-        year: user.year,
-        organization: user.organization,
-        passId: user.passId,
         profileComplete: user.profileComplete,
-        createdAt: user.createdAt,
+        passId: user.passId,
       })
       .from(user)
       .where(eq(user.id, userId))
@@ -41,7 +37,7 @@ export async function GET(request: NextRequest) {
       return errorResponse('User not found', 404);
     }
 
-    // ── Fetch clearance pass (if profile is complete) ──
+    // ── Fetch clearance pass details if user has a pass ──
     let pass = null;
     if (profileUser.passId) {
       const [userPass] = await db
@@ -49,7 +45,6 @@ export async function GET(request: NextRequest) {
           passId: clearancePasses.passId,
           qrToken: clearancePasses.qrToken,
           issuedAt: clearancePasses.issuedAt,
-          revoked: clearancePasses.revoked,
         })
         .from(clearancePasses)
         .where(eq(clearancePasses.uid, userId))
@@ -57,27 +52,9 @@ export async function GET(request: NextRequest) {
       pass = userPass || null;
     }
 
-    // ── Fetch application history with event names ──
-    const userApps = await db
-      .select({
-        id: applications.id,
-        subEventId: applications.subEventId,
-        eventName: events.name,
-        status: applications.status,
-        appliedAt: applications.appliedAt,
-        checkedIn: applications.checkedIn,
-        checkedInAt: applications.checkedInAt,
-        notes: applications.notes,
-      })
-      .from(applications)
-      .leftJoin(events, eq(applications.subEventId, events.id))
-      .where(eq(applications.uid, userId))
-      .orderBy(desc(applications.appliedAt));
-
     return jsonResponse({
       user: profileUser,
       pass,
-      applications: userApps,
     });
   } catch (error) {
     console.error('[GET /api/user/profile]', error);

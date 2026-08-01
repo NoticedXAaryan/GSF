@@ -6,6 +6,7 @@ import { auth } from './auth';
 export type Role = 'Attendee' | 'Volunteer' | 'Faculty' | 'Admin' | 'Lead';
 
 const ADMIN_ROLES: ReadonlySet<Role> = new Set(['Admin', 'Lead']);
+const LEAD_ROLES: ReadonlySet<Role> = new Set(['Lead', 'Admin']);
 const VOLUNTEER_ROLES: ReadonlySet<Role> = new Set(['Volunteer', 'Admin', 'Lead']);
 
 // ────────────────────────────────────────────────────────────
@@ -114,14 +115,16 @@ export async function getSession(headers: Headers): Promise<AuthSession | null> 
 }
 
 /**
- * Require a valid session. Returns 401 if not authenticated.
+ * Require a valid session. Returns null if not authenticated.
+ * Routes should return a 401 error response when null is returned.
  */
 export async function requireSession(headers: Headers): Promise<AuthSession | null> {
   return getSession(headers);
 }
 
 /**
- * Require admin role. Returns null if not admin.
+ * Require admin role (Admin or Lead). Returns null if not authenticated or not admin.
+ * Routes should return a 403 error response when null is returned.
  */
 export async function requireAdmin(headers: Headers): Promise<AuthSession | null> {
   const session = await getSession(headers);
@@ -131,7 +134,20 @@ export async function requireAdmin(headers: Headers): Promise<AuthSession | null
 }
 
 /**
- * Require volunteer-or-above role.
+ * Require Lead or Admin role. Returns null if not authenticated or lacks the role.
+ * Routes should return a 403 error response when null is returned.
+ */
+export async function requireLead(headers: Headers): Promise<AuthSession | null> {
+  const session = await getSession(headers);
+  if (!session) return null;
+  if (!LEAD_ROLES.has(session.user.role)) return null;
+  return session;
+}
+
+/**
+ * Require volunteer-or-above role (Volunteer, Lead, or Admin).
+ * Returns null if not authenticated or lacks the role.
+ * Routes should return a 403 error response when null is returned.
  */
 export async function requireVolunteer(headers: Headers): Promise<AuthSession | null> {
   const session = await getSession(headers);
@@ -141,11 +157,80 @@ export async function requireVolunteer(headers: Headers): Promise<AuthSession | 
 }
 
 // ────────────────────────────────────────────────────────────
+// Auth Helpers — With Error Response (discriminated union pattern)
+// ────────────────────────────────────────────────────────────
+
+type AuthResult =
+  | { session: AuthSession; error?: never }
+  | { session?: never; error: NextResponse };
+
+/**
+ * Require a valid session with built-in error response.
+ * Returns a 401 error response if not authenticated.
+ */
+export async function requireSessionWithResponse(headers: Headers): Promise<AuthResult> {
+  const session = await getSession(headers);
+  if (!session) {
+    return { error: errorResponse('Unauthorized', 401) };
+  }
+  return { session };
+}
+
+/**
+ * Require admin role with built-in error response.
+ * Returns 401 if not authenticated, 403 if insufficient role.
+ */
+export async function requireAdminWithResponse(headers: Headers): Promise<AuthResult> {
+  const session = await getSession(headers);
+  if (!session) {
+    return { error: errorResponse('Unauthorized', 401) };
+  }
+  if (!ADMIN_ROLES.has(session.user.role)) {
+    return { error: errorResponse('Unauthorized. Admin access required.', 403) };
+  }
+  return { session };
+}
+
+/**
+ * Require Lead or Admin role with built-in error response.
+ * Returns 401 if not authenticated, 403 if insufficient role.
+ */
+export async function requireLeadWithResponse(headers: Headers): Promise<AuthResult> {
+  const session = await getSession(headers);
+  if (!session) {
+    return { error: errorResponse('Unauthorized', 401) };
+  }
+  if (!LEAD_ROLES.has(session.user.role)) {
+    return { error: errorResponse('Unauthorized. Lead access required.', 403) };
+  }
+  return { session };
+}
+
+/**
+ * Require volunteer-or-above role with built-in error response.
+ * Returns 401 if not authenticated, 403 if insufficient role.
+ */
+export async function requireVolunteerWithResponse(headers: Headers): Promise<AuthResult> {
+  const session = await getSession(headers);
+  if (!session) {
+    return { error: errorResponse('Unauthorized', 401) };
+  }
+  if (!VOLUNTEER_ROLES.has(session.user.role)) {
+    return { error: errorResponse('Unauthorized. Volunteer access required.', 403) };
+  }
+  return { session };
+}
+
+// ────────────────────────────────────────────────────────────
 // Role Checks
 // ────────────────────────────────────────────────────────────
 
 export function isAdmin(role: string): boolean {
   return ADMIN_ROLES.has(role as Role);
+}
+
+export function isLead(role: string): boolean {
+  return LEAD_ROLES.has(role as Role);
 }
 
 export function isVolunteer(role: string): boolean {

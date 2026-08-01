@@ -1,35 +1,28 @@
-"use client";
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from '@/lib/auth-client';
-import { Loader2 } from 'lucide-react';
+/**
+ * Dashboard router — Server Component that redirects authenticated users
+ * to their role-appropriate dashboard sub-page.
+ * This page never renders any UI.
+ */
+export default async function DashboardRootPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-export default function DashboardRootPage() {
-  const { data: session, isPending } = useSession();
-  const router = useRouter();
+  if (!session) {
+    redirect('/login');
+  }
 
-  useEffect(() => {
-    if (isPending) return;
+  const role = session.user?.role || 'Attendee';
 
-    if (!session) {
-      router.replace('/login');
-      return;
-    }
-
-    const role = session.user?.role || 'Attendee';
-    if (role === 'Admin' || role === 'Lead') {
-      router.replace('/dashboard/admin');
-    } else if (role === 'Volunteer') {
-      router.replace('/dashboard/volunteer');
-    } else {
-      router.replace('/dashboard/user');
-    }
-  }, [session, isPending, router]);
-
-  return (
-    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-black/50" />
-    </div>
-  );
+  if (role === 'Admin' || role === 'Lead') {
+    redirect('/dashboard/admin');
+  } else if (role === 'Volunteer') {
+    redirect('/dashboard/volunteer');
+  } else {
+    redirect('/dashboard/user');
+  }
 }

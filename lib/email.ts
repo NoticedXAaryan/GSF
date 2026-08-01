@@ -56,8 +56,9 @@ export async function sendEmail(
 
   try {
     const fromName = process.env.SMTP_FROM_NAME || 'Goa Startup Festival 2026';
+    const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER;
     const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${process.env.SMTP_USER}>`,
+      from: `"${fromName}" <${fromEmail}>`,
       to,
       subject,
       html: wrapInTemplate(html),
@@ -91,6 +92,11 @@ export async function sendResetEmail(email: string, url: string): Promise<boolea
     <p style="font-size: 14px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
   `;
   return sendEmail(email, 'Reset your password — GSF 2026', content);
+}
+
+/** Password reset — spec-defined name, delegates to sendResetEmail */
+export async function sendPasswordReset(to: string, resetLink: string): Promise<boolean> {
+  return sendResetEmail(to, resetLink);
 }
 
 /** Sent when a user completes their profile and receives a clearance pass */

@@ -11,8 +11,13 @@ import {
   generateId,
 } from '@/lib/api-helpers';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await requireAdmin(request.headers);
+    if (!session) {
+      return errorResponse('Unauthorized. Admin access required.', 403);
+    }
+
     const result = await db
       .select()
       .from(announcements)

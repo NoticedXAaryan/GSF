@@ -249,3 +249,44 @@ export const announcements = pgTable(
     index('idx_announcements_created_at').on(table.createdAt),
   ]
 );
+
+export const taskChecklists = pgTable(
+  'task_checklists',
+  {
+    id: text('id').primaryKey(),
+    subEventId: text('sub_event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    leadUid: text('lead_uid')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    createdAt: bigint('created_at', { mode: 'number' }).notNull(),
+    updatedAt: bigint('updated_at', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('idx_task_checklists_sub_event').on(table.subEventId),
+    index('idx_task_checklists_lead').on(table.leadUid),
+  ]
+);
+
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: text('id').primaryKey(),
+    checklistId: text('checklist_id')
+      .notNull()
+      .references(() => taskChecklists.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description').default(''),
+    dueDate: text('due_date').notNull(),
+    completed: boolean('completed').default(false),
+    completedAt: bigint('completed_at', { mode: 'number' }),
+    sortOrder: integer('sort_order').default(0),
+    createdAt: bigint('created_at', { mode: 'number' }).notNull(),
+    updatedAt: bigint('updated_at', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('idx_tasks_checklist').on(table.checklistId),
+  ]
+);

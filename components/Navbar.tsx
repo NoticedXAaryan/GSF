@@ -1,185 +1,192 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
-import { authClient } from '@/lib/auth-client';
-import { AnimatePresence, motion } from 'motion/react';
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import { AnimatePresence, motion } from "motion/react";
 
 const NAV_LINKS = [
-  { label: 'HOME', href: '/' },
-  { label: 'ABOUT', href: '/#about' },
-  { label: 'EVENTS', href: '/#events' },
-  { label: 'GALLERY', href: '/#gallery' },
-  { label: 'FAQ', href: '/#faq' },
+  { label: "About", href: "#about" },
+  { label: "Events", href: "#events" },
+  { label: "Schedule", href: "#schedule" },
+  { label: "FAQ", href: "#faq" },
 ];
 
+const HEADER_HEIGHT = 80;
+
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, isVolunteer } = useAuth();
-  const pathname = usePathname();
+  const { data: sessionData, isPending } = useSession();
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const isAuthenticated = !isPending && !!sessionData?.user;
 
+  // Prevent background scroll when mobile menu is open
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
-  const handleLogout = async () => {
-    await authClient.signOut();
-    window.location.href = '/login';
-  };
+  const closeMobileMenu = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
+  const handleSmoothScroll = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      // Only handle hash links for on-page sections
+      if (!href.startsWith("#")) return;
+      e.preventDefault();
+      const targetId = href.slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        const top =
+          target.getBoundingClientRect().top + window.scrollY - HEADER_HEIGHT;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+      closeMobileMenu();
+    },
+    [closeMobileMenu]
+  );
 
   return (
     <>
-      {/* ── Fixed Top Bar ── */}
-      <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? 'bg-[#0a0a0a]/90 backdrop-blur-2xl border-b border-white/[0.06]'
-            : 'bg-transparent'
-        }`}
-      >
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
-          {/* Logo — text only, matching EVONTÉ "EVNT" style */}
-          <Link href="/" className="font-display font-bold text-[22px] tracking-[0.12em] uppercase text-white">
-            GSF<span className="text-accent-pink">.</span>
+      {/* Fixed Navigation Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          {/* Logo / Title */}
+          <Link
+            href="/"
+            className="text-xl font-bold tracking-tight text-gray-900 min-h-[44px] min-w-[44px] flex items-center"
+          >
+            GSF 2026
           </Link>
 
-          {/* Center nav links — desktop */}
-          <nav className="hidden lg:flex items-center gap-10">
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l.label}
-                href={l.href}
-                className="font-mono text-[11px] tracking-[0.2em] text-white/50 hover:text-white transition-colors duration-200"
+          {/* Desktop Navigation Links (hidden below 1024px) */}
+          <nav className="hidden lg:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={(e) => handleSmoothScroll(e, link.href)}
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                {l.label}
-              </Link>
+                {link.label}
+              </a>
             ))}
           </nav>
 
-          {/* Right — CTA */}
-          <div className="hidden lg:flex items-center gap-5">
-            {user ? (
-              <>
-                {isVolunteer && (
-                  <Link
-                    href="/volunteer"
-                    className="font-mono text-[11px] tracking-[0.2em] text-accent-pink hover:text-white transition-colors"
-                  >
-                    SCANNER
-                  </Link>
-                )}
-                <Link
-                  href="/dashboard"
-                  className="font-mono text-[11px] tracking-[0.2em] text-white/50 hover:text-white transition-colors"
-                >
-                  DASHBOARD
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="font-mono text-[11px] tracking-[0.2em] text-white/50 hover:text-accent-pink transition-colors"
-                >
-                  LOGOUT
-                </button>
-              </>
-            ) : (
+          {/* Desktop Auth Links */}
+          <div className="hidden lg:flex items-center gap-4">
+            {isAuthenticated ? (
               <Link
-                href="/register"
-                className="border border-white/20 px-6 py-2.5 font-mono text-[11px] tracking-[0.2em] text-white hover:bg-accent-pink hover:border-accent-pink transition-all duration-300"
+                href="/dashboard"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                REGISTER
+                Dashboard
               </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center rounded-md bg-accent-pink text-white text-sm font-medium px-5 min-h-[44px] hover:bg-accent-pink/90 transition-colors duration-200 shadow-sm"
+                >
+                  Register
+                </Link>
+              </>
             )}
           </div>
 
-          {/* Mobile hamburger */}
+          {/* Mobile Hamburger Icon */}
           <button
-            className="lg:hidden text-white p-2"
+            className="lg:hidden flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-700 hover:text-gray-900 transition-colors"
             onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
+            aria-label="Open navigation menu"
           >
-            <Menu size={22} strokeWidth={1.5} />
+            <Menu size={24} />
           </button>
         </div>
       </header>
 
-      {/* ── Mobile Overlay ── */}
+      {/* Mobile Full-Screen Overlay Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[60] bg-[#0a0a0a] flex flex-col"
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-white flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
           >
-            <div className="px-6 h-20 flex items-center justify-between">
-              <span className="font-display font-bold text-[22px] tracking-[0.12em] uppercase text-white">
-                GSF<span className="text-accent-pink">.</span>
+            {/* Overlay Header */}
+            <div className="px-4 sm:px-6 h-20 flex items-center justify-between border-b border-gray-200/60">
+              <span className="text-xl font-bold tracking-tight text-gray-900">
+                GSF 2026
               </span>
-              <button onClick={() => setMobileOpen(false)} className="text-white/60 p-2">
-                <X size={26} strokeWidth={1.5} />
+              <button
+                onClick={closeMobileMenu}
+                className="flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-700 hover:text-gray-900 transition-colors"
+                aria-label="Close navigation menu"
+              >
+                <X size={24} />
               </button>
             </div>
 
-            <nav className="flex-1 flex flex-col items-center justify-center gap-8">
-              {NAV_LINKS.map((l) => (
-                <Link
-                  key={l.label}
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="font-display text-3xl font-bold uppercase tracking-wider text-white/60 hover:text-accent-pink transition-colors"
+            {/* Overlay Navigation Links */}
+            <nav className="flex-1 flex flex-col items-center justify-center gap-6 px-6">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={(e) => handleSmoothScroll(e, link.href)}
+                  className="text-2xl font-semibold text-gray-900 hover:text-accent-pink transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
-                  {l.label}
-                </Link>
+                  {link.label}
+                </a>
               ))}
             </nav>
 
-            <div className="px-6 pb-12 flex flex-col gap-4">
-              {user ? (
-                <>
-                  {isVolunteer && (
-                    <Link
-                      href="/volunteer"
-                      onClick={() => setMobileOpen(false)}
-                      className="btn-primary w-full text-center py-4 bg-accent-pink/10 text-accent-pink hover:bg-accent-pink/20 border-accent-pink/30"
-                    >
-                      SCANNER
-                    </Link>
-                  )}
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileOpen(false)}
-                    className="btn-primary w-full text-center py-4"
-                  >
-                    DASHBOARD
-                  </Link>
-                  <button
-                    onClick={() => { handleLogout(); setMobileOpen(false); }}
-                    className="text-center text-white/40 font-mono text-sm uppercase tracking-wider py-3"
-                  >
-                    LOGOUT
-                  </button>
-                </>
-              ) : (
+            {/* Overlay Auth Section */}
+            <div className="px-6 pb-10 flex flex-col gap-4">
+              {isAuthenticated ? (
                 <Link
-                  href="/register"
-                  onClick={() => setMobileOpen(false)}
-                  className="btn-primary w-full text-center py-4"
+                  href="/dashboard"
+                  onClick={closeMobileMenu}
+                  className="inline-flex items-center justify-center rounded-md bg-accent-pink text-white text-base font-medium py-3 px-5 min-h-[44px] hover:bg-accent-pink/90 transition-colors duration-200 shadow-sm w-full"
                 >
-                  REGISTER
+                  Dashboard
                 </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={closeMobileMenu}
+                    className="text-center text-base font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 min-h-[44px] flex items-center justify-center"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={closeMobileMenu}
+                    className="inline-flex items-center justify-center rounded-md bg-accent-pink text-white text-base font-medium py-3 px-5 min-h-[44px] hover:bg-accent-pink/90 transition-colors duration-200 shadow-sm w-full"
+                  >
+                    Register
+                  </Link>
+                </>
               )}
             </div>
           </motion.div>

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, ilike, or, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { user } from '@/lib/schema';
 import { updateRoleSchema } from '@/lib/validators';
@@ -13,56 +13,72 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const roleFilter = searchParams.get('role');
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '20', 10)));
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10));
+    const search = searchParams.get('search')?.trim() || '';
 
-    let result;
-    if (roleFilter) {
-      result = await db
-        .select({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: user.role,
-          phone: user.phone,
-          collegeDept: user.collegeDept,
-          year: user.year,
-          organization: user.organization,
-          passId: user.passId,
-          profileComplete: user.profileComplete,
-          createdAt: user.createdAt,
-        })
+    const selectFields = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      role: user.role,
+      phone: user.phone,
+      collegeDept: user.collegeDept,
+      year: user.year,
+      organization: user.organization,
+      passId: user.passId,
+      profileComplete: user.profileComplete,
+      createdAt: user.createdAt,
+    };
+
+    let users;
+    let total: number;
+
+    if (search) {
+      const searchPattern = `%${search}%`;
+      const whereClause = or(
+        ilike(user.name, searchPattern),
+        ilike(user.email, searchPattern)
+      );
+
+      const [countResult] = await db
+        .select({ count: count() })
         .from(user)
-        .where(eq(user.role, roleFilter))
-        .orderBy(desc(user.createdAt));
+        .where(whereClause);
+
+      total = countResult.count;
+
+      users = await db
+        .select(selectFields)
+        .from(user)
+        .where(whereClause)
+        .orderBy(desc(user.createdAt))
+        .limit(limit)
+        .offset(offset);
     } else {
-      result = await db
-        .select({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: user.role,
-          phone: user.phone,
-          collegeDept: user.collegeDept,
-          year: user.year,
-          organization: user.organization,
-          passId: user.passId,
-          profileComplete: user.profileComplete,
-          createdAt: user.createdAt,
-        })
+      const [countResult] = await db
+        .select({ count: count() })
+        .from(user);
+
+      total = countResult.count;
+
+      users = await db
+        .select(selectFields)
         .from(user)
-        .orderBy(desc(user.createdAt));
+        .orderBy(desc(user.createdAt))
+        .limit(limit)
+        .offset(offset);
     }
 
-    return jsonResponse({ users: result, total: result.length });
+    return jsonResponse({ users, total });
   } catch (error) {
     console.error('[GET /api/admin/users]', error);
     return errorResponse('Internal server error', 500);
   }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await requireAdmin(request.headers);
     if (!session) {
@@ -74,9 +90,9 @@ export async function PATCH(request: NextRequest) {
 
     const { userId, role } = parsed.data;
 
-    // Prevent self-demotion
-    if (userId === session.user.id && !['Admin', 'Lead'].includes(role)) {
-      return errorResponse('Cannot demote yourself', 400);
+    // Prevent admin from demoting their own account below Admin level
+    if (userId === session.user.id && role !== 'Admin') {
+      return errorResponse('Cannot demote your own account', 400);
     }
 
     const [updated] = await db
@@ -96,7 +112,7 @@ export async function PATCH(request: NextRequest) {
 
     return jsonResponse({ user: updated });
   } catch (error) {
-    console.error('[PATCH /api/admin/users]', error);
+    console.error('[PUT /api/admin/users]', error);
     return errorResponse('Internal server error', 500);
   }
 }

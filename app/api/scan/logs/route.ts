@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { scanLogs } from '@/lib/schema';
 import { requireVolunteer } from '@/lib/api-helpers';
 
 /**
  * GET /api/scan/logs
- * Fetch scan logs. Volunteer-or-above access.
- * Optional query param: ?scannedByUid=xxx to filter by scanner.
+ * Fetch scan logs for a specific event. Volunteer-or-above access.
+ * Required query param: ?eventId=xxx
+ * Optional pagination: ?limit=50&offset=0
+ * Returns: { logs: [...], total: number }
  */
 export async function GET(request: NextRequest) {
   try {
@@ -20,25 +22,35 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const scannedByUid = searchParams.get('scannedByUid');
+    const eventId = searchParams.get('eventId');
 
-    let rows;
-    if (scannedByUid) {
-      rows = await db
-        .select()
-        .from(scanLogs)
-        .where(eq(scanLogs.scannedByUid, scannedByUid))
-        .orderBy(desc(scanLogs.timestamp))
-        .limit(200);
-    } else {
-      rows = await db
-        .select()
-        .from(scanLogs)
-        .orderBy(desc(scanLogs.timestamp))
-        .limit(200);
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'eventId query parameter is required' },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(rows);
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '50', 10) || 50, 1), 200);
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10) || 0, 0);
+
+    const [rows, totalResult] = await Promise.all([
+      db
+        .select()
+        .from(scanLogs)
+        .where(eq(scanLogs.eventId, eventId))
+        .orderBy(desc(scanLogs.timestamp))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: count() })
+        .from(scanLogs)
+        .where(eq(scanLogs.eventId, eventId)),
+    ]);
+
+    const total = totalResult[0]?.count ?? 0;
+
+    return NextResponse.json({ logs: rows, total });
   } catch (error) {
     console.error('[GET /api/scan/logs]', error);
     return NextResponse.json(

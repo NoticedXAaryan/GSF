@@ -7,23 +7,23 @@ import {
   jsonResponse,
   errorResponse,
   parseBody,
-  requireSession,
-  generatePassId,
-  generateQRToken,
+  getSession,
 } from '@/lib/api-helpers';
 
 /**
  * POST /api/user/complete-profile
- * Called after Google OAuth to complete the profile (phone, dept, year)
- * and generate the clearance pass. This is a one-time operation.
+ * Called after authentication to complete the user profile (phone, collegeDept).
+ * Sets profileComplete = true. This is a one-time operation.
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireSession(request.headers);
+    // ── Require authenticated session ──
+    const session = await getSession(request.headers);
     if (!session) {
       return errorResponse('Authentication required', 401);
     }
 
+    // ── Validate input ──
     const parsed = await parseBody(request, completeProfileSchema);
     if (parsed.error) return parsed.error;
 
@@ -32,49 +32,37 @@ export async function POST(request: NextRequest) {
 
     // ── Check if profile already completed ──
     const [existing] = await db
-      .select({
-        profileComplete: user.profileComplete,
-        passId: user.passId,
-      })
+      .select({ profileComplete: user.profileComplete })
       .from(user)
       .where(eq(user.id, userId))
       .limit(1);
 
-    if (existing?.profileComplete && existing?.passId) {
-      return errorResponse('Profile already completed', 409);
+    if (existing?.profileComplete) {
+      return errorResponse('Profile has already been completed', 409);
     }
 
-    // ── Transaction: update profile + create clearance pass ──
-    const passId = generatePassId();
-    const qrToken = generateQRToken();
-    const now = Date.now();
+    // ── Update user record ──
+    const [updatedUser] = await db
+      .update(user)
+      .set({
+        phone: data.phone.trim(),
+        collegeDept: data.collegeDept?.trim() || '',
+        profileComplete: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId))
+      .returning();
 
-    const result = await db.transaction(async (tx) => {
-      const [updatedUser] = await tx
-        .update(user)
-        .set({
-          phone: data.phone.trim(),
-          collegeDept: data.collegeDept?.trim() || '',
-          profileComplete: true,
-          updatedAt: new Date(),
-        })
-        .where(eq(user.id, userId))
-        .returning();
-
-      return { user: updatedUser };
-    });
-
-    return jsonResponse(
-      {
-        user: {
-          id: result.user.id,
-          name: result.user.name,
-          email: result.user.email,
-          profileComplete: result.user.profileComplete,
-        },
+    return jsonResponse({
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        collegeDept: updatedUser.collegeDept,
+        profileComplete: updatedUser.profileComplete,
       },
-      201
-    );
+    });
   } catch (error) {
     console.error('[POST /api/user/complete-profile]', error);
     return errorResponse('Internal server error', 500);

@@ -86,3 +86,38 @@ export const updateRoleSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
   role: z.enum(['Attendee', 'Volunteer', 'Faculty', 'Admin', 'Lead']),
 });
+
+// ────────────────────────────────────────────────────────────
+// Task Checklists & Tasks
+// ────────────────────────────────────────────────────────────
+
+export const createTaskChecklistSchema = z.object({
+  subEventId: z.string().min(1, 'Sub-event ID is required'),
+  leadUid: z.string().min(1, 'Lead user ID is required'),
+  title: z.string().min(1, 'Title is required').max(200),
+});
+
+export const createTaskSchema = z.object({
+  checklistId: z.string().min(1, 'Checklist ID is required'),
+  title: z.string().min(1, 'Title is required').max(100),
+  description: z.string().max(500).optional().default(''),
+  dueDate: z.string().min(1, 'Due date is required').regex(/^\d{4}-\d{2}-\d{2}/, 'Due date must be in ISO format'),
+  sortOrder: z.number().optional().default(0),
+});
+
+export const updateTaskSchema = z.object({
+  title: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+  dueDate: z.string().min(1).regex(/^\d{4}-\d{2}-\d{2}/, 'Due date must be in ISO format').optional(),
+  completed: z.boolean().optional(),
+  sortOrder: z.number().optional(),
+});
+
+// ────────────────────────────────────────────────────────────
+// Volunteer Assignment
+// ────────────────────────────────────────────────────────────
+
+export const assignVolunteerSchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  subEventId: z.string().min(1, 'Sub-event ID is required'),
+});

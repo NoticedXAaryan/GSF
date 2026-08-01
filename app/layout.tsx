@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Inter } from 'next/font/google';
+import { Playfair_Display, Inter, Anton } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 import './globals.css';
 
@@ -15,6 +15,13 @@ const inter = Inter({
   display: 'swap',
 });
 
+const anton = Anton({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-anton',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Goa Startup Festival 2026 | Parul University',
   description:
@@ -27,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${inter.variable} ${anton.variable}`}>
       <body
         className="font-sans antialiased bg-[#050505] text-white overflow-x-hidden"
         suppressHydrationWarning

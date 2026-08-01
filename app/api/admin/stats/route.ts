@@ -1,52 +1,54 @@
 import { NextRequest } from 'next/server';
-import { eq, sql, and, gt } from 'drizzle-orm';
+import { eq, and, gt, count, isNotNull, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { user, events, applications, scanLogs } from '@/lib/schema';
-import { jsonResponse, errorResponse, requireAdmin } from '@/lib/api-helpers';
+import { jsonResponse, errorResponse, requireLead } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAdmin(request.headers);
+    const session = await requireLead(request.headers);
     if (!session) {
-      return errorResponse('Unauthorized. Admin access required.', 403);
+      return errorResponse('Unauthorized. Lead access required.', 403);
     }
 
-    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const oneDayAgo = now - 86400000;
+    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
-    // Run all stats queries in parallel for speed
+    // Run all stats queries in parallel
     const [
-      usersCount,
-      eventsCount,
-      appsCount,
+      totalUsersResult,
+      totalEventsResult,
+      totalApplicationsResult,
       statusBreakdown,
-      todayCheckIns,
-      capacityInfo,
-      recentUsers,
+      checkInsLast24hResult,
+      newUsersLast7dResult,
+      eventsCapacityResult,
     ] = await Promise.all([
       // Total users
-      db.select({ count: sql<number>`count(*)::int` }).from(user),
+      db.select({ value: count() }).from(user),
 
-      // Total active events
+      // Total non-archived events
       db
-        .select({ count: sql<number>`count(*)::int` })
+        .select({ value: count() })
         .from(events)
         .where(sql`${events.status} != 'archived'`),
 
       // Total applications
-      db.select({ count: sql<number>`count(*)::int` }).from(applications),
+      db.select({ value: count() }).from(applications),
 
       // Applications grouped by status
       db
         .select({
           status: applications.status,
-          count: sql<number>`count(*)::int`,
+          value: count(),
         })
         .from(applications)
         .groupBy(applications.status),
 
-      // Check-ins in the last 24 hours
+      // Check-ins in last 24 hours (scan_logs with result "allowed" and timestamp > now - 86400000)
       db
-        .select({ count: sql<number>`count(*)::int` })
+        .select({ value: count() })
         .from(scanLogs)
         .where(
           and(
@@ -55,11 +57,17 @@ export async function GET(request: NextRequest) {
           )
         ),
 
-      // Events with capacity utilization
+      // New users in last 7 days
+      db
+        .select({ value: count() })
+        .from(user)
+        .where(gt(user.createdAt, sevenDaysAgo)),
+
+      // Events capacity: published events with non-null capacity
       db
         .select({
-          id: events.id,
-          name: events.name,
+          eventId: events.id,
+          eventName: events.name,
           capacity: events.capacity,
           currentRegistrations: events.currentRegistrations,
         })
@@ -67,35 +75,32 @@ export async function GET(request: NextRequest) {
         .where(
           and(
             eq(events.status, 'published'),
-            sql`${events.capacity} IS NOT NULL`
+            isNotNull(events.capacity)
           )
         ),
-
-      // Recently registered users (last 7 days)
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(user)
-        .where(gt(user.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))),
     ]);
 
-    const statusMap = statusBreakdown.reduce(
-      (acc, row) => {
-        if (row.status) acc[row.status] = row.count;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    // Build applicationsByStatus map with defaults
+    const applicationsByStatus: Record<string, number> = {
+      pending: 0,
+      accepted: 0,
+      waitlisted: 0,
+      rejected: 0,
+    };
+    for (const row of statusBreakdown) {
+      if (row.status && row.status in applicationsByStatus) {
+        applicationsByStatus[row.status] = row.value;
+      }
+    }
 
     return jsonResponse({
-      stats: {
-        totalUsers: usersCount[0]?.count ?? 0,
-        totalEvents: eventsCount[0]?.count ?? 0,
-        totalApplications: appsCount[0]?.count ?? 0,
-        applicationsByStatus: statusMap,
-        checkInsToday: todayCheckIns[0]?.count ?? 0,
-        newUsersThisWeek: recentUsers[0]?.count ?? 0,
-        eventsCapacity: capacityInfo,
-      },
+      totalUsers: totalUsersResult[0]?.value ?? 0,
+      totalEvents: totalEventsResult[0]?.value ?? 0,
+      totalApplications: totalApplicationsResult[0]?.value ?? 0,
+      applicationsByStatus,
+      checkInsLast24h: checkInsLast24hResult[0]?.value ?? 0,
+      newUsersLast7d: newUsersLast7dResult[0]?.value ?? 0,
+      eventsCapacity: eventsCapacityResult,
     });
   } catch (error) {
     console.error('[GET /api/admin/stats]', error);

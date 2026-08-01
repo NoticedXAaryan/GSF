@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { applications, events } from '@/lib/schema';
 import { sendApplicationStatusUpdate } from '@/lib/email';
@@ -8,24 +8,23 @@ import {
   jsonResponse,
   errorResponse,
   parseBody,
-  requireSession,
-  requireAdmin,
+  requireLead,
 } from '@/lib/api-helpers';
 
 interface RouteContext {
   params: Promise<{ eventId: string }>;
 }
 
+/**
+ * GET /api/events/[eventId]/applications
+ * Admin/Lead only — list all applications for the given event with user details.
+ * Supports optional ?status= query parameter filter.
+ */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const session = await requireSession(request.headers);
+    const session = await requireLead(request.headers);
     if (!session) {
-      return errorResponse('Authentication required', 401);
-    }
-
-    const role = session.user.role;
-    if (!['Volunteer', 'Admin', 'Lead'].includes(role)) {
-      return errorResponse('Unauthorized', 403);
+      return errorResponse('Unauthorized. Lead access required.', 403);
     }
 
     const { eventId } = await context.params;
@@ -35,16 +34,38 @@ export async function GET(request: NextRequest, context: RouteContext) {
     let result;
     if (statusFilter) {
       result = await db
-        .select()
+        .select({
+          id: applications.id,
+          uid: applications.uid,
+          userName: applications.userName,
+          userEmail: applications.userEmail,
+          status: applications.status,
+          appliedAt: applications.appliedAt,
+          notes: applications.notes,
+          decidedBy: applications.decidedBy,
+          decidedAt: applications.decidedAt,
+        })
         .from(applications)
-        .where(eq(applications.subEventId, eventId))
+        .where(
+          and(
+            eq(applications.subEventId, eventId),
+            eq(applications.status, statusFilter as any)
+          )
+        )
         .orderBy(desc(applications.appliedAt));
-
-      // Filter in application code since status is an enum
-      result = result.filter((a) => a.status === statusFilter);
     } else {
       result = await db
-        .select()
+        .select({
+          id: applications.id,
+          uid: applications.uid,
+          userName: applications.userName,
+          userEmail: applications.userEmail,
+          status: applications.status,
+          appliedAt: applications.appliedAt,
+          notes: applications.notes,
+          decidedBy: applications.decidedBy,
+          decidedAt: applications.decidedAt,
+        })
         .from(applications)
         .where(eq(applications.subEventId, eventId))
         .orderBy(desc(applications.appliedAt));
@@ -57,11 +78,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 }
 
-export async function PATCH(request: NextRequest, _context: RouteContext) {
+/**
+ * PUT /api/events/[eventId]/applications
+ * Admin/Lead only — update an application's status.
+ * Validates with updateApplicationSchema (requires: applicationId, status).
+ * Updates decidedBy and decidedAt, then sends a fire-and-forget status email.
+ */
+export async function PUT(request: NextRequest, _context: RouteContext) {
   try {
-    const session = await requireAdmin(request.headers);
+    const session = await requireLead(request.headers);
     if (!session) {
-      return errorResponse('Unauthorized. Admin access required.', 403);
+      return errorResponse('Unauthorized. Lead access required.', 403);
     }
 
     const parsed = await parseBody(request, updateApplicationSchema);
@@ -69,7 +96,7 @@ export async function PATCH(request: NextRequest, _context: RouteContext) {
 
     const { applicationId, status, notes } = parsed.data;
 
-    // Verify exists and get user details for the notification email
+    // Verify the application exists and get user details for the notification email
     const [existing] = await db
       .select({
         id: applications.id,
@@ -96,8 +123,7 @@ export async function PATCH(request: NextRequest, _context: RouteContext) {
       .where(eq(applications.id, applicationId))
       .returning();
 
-    // ── Fire-and-forget: send status update email ──
-    // Fetch event name for a meaningful notification
+    // ── Fire-and-forget: send application status update email ──
     db.select({ name: events.name })
       .from(events)
       .where(eq(events.id, existing.subEventId))
@@ -112,11 +138,13 @@ export async function PATCH(request: NextRequest, _context: RouteContext) {
           notes
         );
       })
-      .catch((err) => console.error('[applications PATCH] Email send failed:', err));
+      .catch((err) =>
+        console.error('[applications PUT] Email send failed:', err)
+      );
 
     return jsonResponse({ application: updated });
   } catch (error) {
-    console.error('[PATCH /api/events/:id/applications]', error);
+    console.error('[PUT /api/events/:id/applications]', error);
     return errorResponse('Internal server error', 500);
   }
 }

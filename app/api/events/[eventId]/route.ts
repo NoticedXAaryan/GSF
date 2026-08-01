@@ -39,9 +39,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     const { eventId } = await context.params;
 
-    // Verify event exists
+    // Verify event exists and get current status
     const [existing] = await db
-      .select({ id: events.id })
+      .select({ id: events.id, status: events.status })
       .from(events)
       .where(eq(events.id, eventId))
       .limit(1);
@@ -53,9 +53,32 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const parsed = await parseBody(request, updateEventSchema);
     if (parsed.error) return parsed.error;
 
+    const { data } = parsed;
+
+    // Enforce status lifecycle transitions
+    if (data.status && data.status !== existing.status) {
+      const currentStatus = existing.status;
+      const newStatus = data.status;
+
+      // Allowed transitions: draft→published, draft→archived, published→archived
+      const allowedTransitions: Record<string, string[]> = {
+        draft: ['published', 'archived'],
+        published: ['archived'],
+        archived: [],
+      };
+
+      const allowed = allowedTransitions[currentStatus] || [];
+      if (!allowed.includes(newStatus)) {
+        return errorResponse(
+          `Invalid status transition: cannot change from "${currentStatus}" to "${newStatus}"`,
+          400
+        );
+      }
+    }
+
     const [updated] = await db
       .update(events)
-      .set({ ...parsed.data, updatedAt: Date.now() })
+      .set({ ...data, updatedAt: Date.now() })
       .where(eq(events.id, eventId))
       .returning();
 

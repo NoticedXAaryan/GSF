@@ -1,133 +1,149 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'motion/react';
-import Link from 'next/link';
-import { authClient } from '@/lib/auth-client';
-import { Rocket, ArrowLeft, Loader2, Mail, CheckCircle } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import { motion } from "motion/react";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string }>({});
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function validateForm(): boolean {
+    const errors: { email?: string } = {};
+
+    if (!email) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    if (!validateForm()) return;
+
+    setError("");
     setLoading(true);
 
     try {
-      // @ts-ignore
+      // @ts-expect-error - forgetPassword is available via Better Auth
       const { error: resetError } = await authClient.forgetPassword({
         email,
-        redirectTo: '/reset-password',
+        redirectTo: "/reset-password",
       });
 
       if (resetError) {
-        setError(resetError.message || 'Failed to send reset email.');
+        setError(resetError.message || "Failed to send reset email.");
       } else {
         setSuccess(true);
       }
-    } catch (err) {
-      setError('An unexpected error occurred.');
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative py-12">
-      {/* Background */}
-      <div className="absolute inset-0 grid-bg" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(245,229,192,0.04)_0%,transparent_70%)]" />
-
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-[#050505]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md px-6"
+        className="relative z-10 w-full max-w-md"
       >
         {/* Back Link */}
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors mb-6 group"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to login
         </Link>
 
         {/* Card */}
-        <div className="card-flat p-8">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-runway-gold/10 flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-runway-gold" />
-            </div>
-            <div>
-              <span className="font-display font-bold text-lg">
-                GSF <span className="text-runway-gold">2026</span>
-              </span>
-            </div>
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm p-8 sm:p-10">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-white leading-tight">
+              Reset password
+            </h1>
+            <p className="text-sm text-white/50 mt-2">
+              Enter your email and we&apos;ll send you a reset link.
+            </p>
           </div>
 
-          <h1 className="font-display text-2xl font-bold mt-6 mb-2">
-            Reset Password
-          </h1>
-          <p className="text-sm text-white/40 mb-8">
-            Enter your email address and we&apos;ll send you a link to reset your password.
-          </p>
-
-          {/* Error */}
+          {/* API Error */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-3 rounded-lg bg-signal-red/10 border border-signal-red/20"
+              className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20"
             >
-              <p className="text-sm text-signal-red">{error}</p>
+              <p className="text-sm text-red-400">{error}</p>
             </motion.div>
           )}
 
-          {/* Success */}
+          {/* Success State */}
           {success ? (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 rounded-lg bg-success/10 border border-success/20 text-center"
+              className="text-center"
             >
-              <CheckCircle className="w-8 h-8 text-success mx-auto mb-2" />
-              <p className="text-sm text-success font-medium">Check your email</p>
-              <p className="text-xs text-success/70 mt-1">
-                We&apos;ve sent a password reset link to {email}. Check your spam folder if you don&apos;t see it.
-              </p>
+              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20 mb-6">
+                <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                <p className="text-sm text-green-400 font-medium">Check your email</p>
+                <p className="text-xs text-green-400/70 mt-1">
+                  We&apos;ve sent a password reset link to {email}. Check your spam folder if you don&apos;t see it.
+                </p>
+              </div>
+              <Link
+                href="/login"
+                className="text-sm text-accent-pink hover:underline"
+              >
+                Return to login
+              </Link>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                  <input
-                    type="email"
-                    required
-                    className="input-field w-full pl-10"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <button
-                type="submit"
+              <Input
+                type="email"
+                label="Email Address"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) setFieldErrors({});
+                }}
+                error={fieldErrors.email}
                 disabled={loading}
-                className="btn-primary w-full py-3 mt-4 flex justify-center"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Link'}
-              </button>
+                labelClassName="text-white/70"
+                errorClassName="text-red-400"
+                className="bg-white/[0.06] border-white/[0.1] text-white placeholder:text-white/30 focus:ring-accent-pink focus:border-accent-pink"
+              />
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  loading={loading}
+                  className="w-full"
+                >
+                  Send Reset Link
+                </Button>
+              </div>
             </form>
           )}
         </div>
