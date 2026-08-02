@@ -50,17 +50,6 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Prevent flash of unstyled content by setting critical styles inline */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              html { background: #08080a; }
-              html:not(.dark) { background: #f2f2f4; }
-              body { margin: 0; background: inherit; color: #f4f4f6; font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif; }
-              html:not(.dark) body { color: #1a1714; }
-            `,
-          }}
-        />
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider>

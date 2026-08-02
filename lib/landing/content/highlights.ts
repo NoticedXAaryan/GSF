@@ -15,6 +15,7 @@ export const FESTIVAL_HIGHLIGHTS = [
     title: "Keynote Speeches",
     description: "Hear founders and leaders share practical lessons on building resilient, high-impact enterprises.",
     icon: Mic2,
+    imageUrl: "/images/highlights/keynote.png",
     accessibleLabel: "Microphone representing keynote speeches",
   },
   {
@@ -22,6 +23,7 @@ export const FESTIVAL_HIGHLIGHTS = [
     title: "Panel Discussions",
     description: "Explore candid perspectives on capital, markets, technology, talent, and the future of entrepreneurship.",
     icon: MessagesSquare,
+    imageUrl: "/images/highlights/panel.png",
     accessibleLabel: "Conversation bubbles representing panel discussions",
   },
   {
@@ -29,6 +31,7 @@ export const FESTIVAL_HIGHLIGHTS = [
     title: "Workshops",
     description: "Build practical skills through focused, hands-on sessions guided by experienced practitioners.",
     icon: Lightbulb,
+    imageUrl: "/images/highlights/workshop.png",
     accessibleLabel: "Light bulb representing practical workshops",
   },
   {
@@ -36,6 +39,7 @@ export const FESTIVAL_HIGHLIGHTS = [
     title: "Startup Showcases",
     description: "Discover emerging ventures, meet their teams, and see promising ideas demonstrated in person.",
     icon: Presentation,
+    imageUrl: "/images/highlights/showcase.png",
     accessibleLabel: "Presentation board representing startup showcases",
   },
   {
@@ -43,6 +47,7 @@ export const FESTIVAL_HIGHLIGHTS = [
     title: "Competitions",
     description: "Watch aspiring founders test their ideas, sharpen their pitches, and compete for festival prizes.",
     icon: Trophy,
+    imageUrl: "/images/highlights/competition.png",
     accessibleLabel: "Trophy representing startup competitions",
   },
   {
@@ -50,6 +55,7 @@ export const FESTIVAL_HIGHLIGHTS = [
     title: "Networking",
     description: "Create meaningful connections with students, founders, mentors, investors, and industry leaders.",
     icon: Network,
+    imageUrl: "/images/highlights/networking.png",
     accessibleLabel: "Connected nodes representing networking",
   },
 ] as const satisfies readonly Highlight[];

@@ -43,6 +43,7 @@ function getNavLinks(role: string): NavLink[] {
       { label: 'Overview', short: 'Home', href: '/dashboard/admin', icon: <Shield className={ICON} />, exact: true },
       { label: 'Users', short: 'Users', href: '/dashboard/admin/users', icon: <Users className={ICON} /> },
       { label: 'Events', short: 'Events', href: '/dashboard/admin/events', icon: <Calendar className={ICON} /> },
+      { label: 'Applications', short: 'Apps', href: '/dashboard/admin/applications', icon: <FileText className={ICON} /> },
       { label: 'Volunteers', short: 'Vols', href: '/dashboard/admin/volunteers', icon: <UserCheck className={ICON} /> },
       { label: 'Scanner', short: 'Scan', href: '/dashboard/admin/scanner', icon: <ScanLine className={ICON} /> },
       { label: 'Announcements', short: 'News', href: '/dashboard/admin/announcements', icon: <Megaphone className={ICON} /> },

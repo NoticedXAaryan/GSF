@@ -1,48 +1,62 @@
+"use client";
+
 import { FESTIVAL_HIGHLIGHTS } from "@/lib/landing/content";
+import { InteractiveHighlightCard } from "./InteractiveHighlightCard";
 
 export function HighlightsSection() {
   return (
     <section
       id="highlights"
       aria-labelledby="highlights-title"
-      className="bg-[#0d0d0f] bg-noise section-padding"
+      className="bg-canvas section-padding relative z-20"
     >
-      <div className="site-container">
-        <header className="max-w-3xl">
-          <p className="mb-2 font-semibold uppercase tracking-widest text-accent">
+      <div className="site-container relative z-10">
+        <header className="max-w-3xl mx-auto text-center">
+          <p className="mb-3 font-black uppercase tracking-widest text-secondary drop-shadow-sm">
             Festival experiences
           </p>
-          <h2 id="highlights-title" className="font-bold text-white">
+          <h2 id="highlights-title" className="font-black text-4xl tablet:text-5xl text-ink drop-shadow-sm">
             Festival Highlights
           </h2>
-          <div aria-hidden="true" className="brand-rule mt-6 w-20 text-accent/40" />
-          <p className="mt-6 text-lg text-white/60">
+          <div aria-hidden="true" className="brand-rule mx-auto mt-8 w-24 border-primary border-t-4" />
+          <p className="mt-8 text-xl text-ink-muted font-medium max-w-2xl mx-auto drop-shadow-sm">
             Learn, compete, showcase your work, and meet the people building
             tomorrow&apos;s enterprises.
           </p>
         </header>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
-          {FESTIVAL_HIGHLIGHTS.map((highlight, index) => {
-            const Icon = highlight.icon;
-
-            return (
-              <article
-                key={highlight.id}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:border-accent/30 hover:bg-white/8"
-              >
-                <span className="inline-flex rounded-xl bg-accent/10 p-3 text-accent">
-                  <Icon
-                    role="img"
-                    aria-label={highlight.accessibleLabel}
-                    size={28}
-                  />
-                </span>
-                <h3 className="mt-6 font-bold text-white">{highlight.title}</h3>
-                <p className="mt-3 text-white/60 leading-relaxed">{highlight.description}</p>
-              </article>
-            );
-          })}
+        {/* Bento Grid Layout */}
+        <div className="mt-16 grid grid-cols-1 gap-6 tablet:grid-cols-2 desktop:grid-cols-4">
+          <InteractiveHighlightCard 
+            highlight={FESTIVAL_HIGHLIGHTS[0]} 
+            className="tablet:col-span-2 desktop:col-span-2 desktop:row-span-2" 
+            delay={0.1}
+          />
+          <InteractiveHighlightCard 
+            highlight={FESTIVAL_HIGHLIGHTS[1]} 
+            className="tablet:col-span-1 desktop:col-span-2" 
+            delay={0.2}
+          />
+          <InteractiveHighlightCard 
+            highlight={FESTIVAL_HIGHLIGHTS[2]} 
+            className="tablet:col-span-1 desktop:col-span-1" 
+            delay={0.3}
+          />
+          <InteractiveHighlightCard 
+            highlight={FESTIVAL_HIGHLIGHTS[3]} 
+            className="tablet:col-span-2 desktop:col-span-1" 
+            delay={0.4}
+          />
+          <InteractiveHighlightCard 
+            highlight={FESTIVAL_HIGHLIGHTS[4]} 
+            className="tablet:col-span-1 desktop:col-span-2" 
+            delay={0.5}
+          />
+          <InteractiveHighlightCard 
+            highlight={FESTIVAL_HIGHLIGHTS[5]} 
+            className="tablet:col-span-1 desktop:col-span-2" 
+            delay={0.6}
+          />
         </div>
       </div>
     </section>

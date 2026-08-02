@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { events } from '@/lib/schema';
+import { events, applications } from '@/lib/schema';
 import { createEventSchema } from '@/lib/validators';
 import {
   jsonResponse,
@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
           status: events.status,
           capacity: events.capacity,
           currentRegistrations: events.currentRegistrations,
+          requiresShortlisting: events.requiresShortlisting,
           coordinatorName: events.coordinatorName,
           targetAudience: events.targetAudience,
         })
@@ -82,10 +83,32 @@ export async function GET(request: NextRequest) {
     }
 
     // Derive registrationStatus for each event
-    const eventsWithStatus = result.map((event) => ({
+    let eventsWithStatus: Record<string, unknown>[] = result.map((event) => ({
       ...event,
       registrationStatus: deriveRegistrationStatus(event),
     }));
+
+    // Admins additionally get a pending-application count per event so the
+    // review queue is discoverable straight from the events list.
+    if (isAdminUser) {
+      const pendingRows = await db
+        .select({
+          subEventId: applications.subEventId,
+          value: count(),
+        })
+        .from(applications)
+        .where(eq(applications.status, 'pending'))
+        .groupBy(applications.subEventId);
+
+      const pendingByEvent = new Map(
+        pendingRows.map((row) => [row.subEventId, row.value])
+      );
+
+      eventsWithStatus = eventsWithStatus.map((event) => ({
+        ...event,
+        pendingCount: pendingByEvent.get(event.id as string) ?? 0,
+      }));
+    }
 
     return jsonResponse({ events: eventsWithStatus });
   } catch (error) {

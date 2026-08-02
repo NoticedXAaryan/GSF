@@ -102,7 +102,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         }
         
         // Allowed to re-apply, update existing application
-        const isShortlisted = event.type === 'shortlisted';
+        const isShortlisted =
+          event.type === 'shortlisted' || event.requiresShortlisting === true;
         const newStatus = isShortlisted ? 'pending' : 'accepted';
         
         const [updatedApplication] = await db
@@ -131,8 +132,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return errorResponse('Event is full', 400);
     }
 
-    // ── Determine initial status based on event type ──
-    const isShortlisted = event.type === 'shortlisted';
+    // ── Determine initial status ──
+    // An event needs manual review when it is a "shortlisted" type OR when the
+    // organiser explicitly flagged it as requiring approval (e.g. limited seats).
+    // Anything else is auto-accepted on apply.
+    const isShortlisted =
+      event.type === 'shortlisted' || event.requiresShortlisting === true;
     const applicationStatus = isShortlisted ? 'pending' : 'accepted';
 
     // ── Insert application (and increment registrations for "registration" type) ──

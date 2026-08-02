@@ -9,6 +9,10 @@ interface RouteContext {
   params: Promise<{ eventId: string }>;
 }
 
+// This route is DB-backed and must never be prerendered at build time —
+// doing so runs a query during `next build` and fails on a cold database.
+export const dynamic = 'force-dynamic';
+
 export async function GET(_request: NextRequest, context: RouteContext) {
   try {
     const { eventId } = await context.params;

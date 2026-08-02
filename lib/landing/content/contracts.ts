@@ -38,6 +38,7 @@ export interface Highlight {
   title: string;
   description: string;
   icon: LucideIcon;
+  imageUrl?: string;
   accessibleLabel: string;
 }
 export interface Speaker {

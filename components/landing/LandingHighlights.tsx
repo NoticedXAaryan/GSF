@@ -68,17 +68,17 @@ const FEATURED_EVENTS = [
 
 export function LandingHighlights() {
   return (
-    <section className="bg-[#08080a] bg-noise py-16 tablet:py-24" id="featured-events">
+    <section className="bg-canvas py-16 tablet:py-24" id="featured-events">
       <div className="site-container">
         <header className="mb-12">
           <p className="mb-2 font-semibold uppercase tracking-widest text-accent">
             What&apos;s Happening
           </p>
-          <h2 className="text-3xl font-extrabold tracking-tight text-white tablet:text-4xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-ink tablet:text-4xl">
             Featured Events
           </h2>
           <div aria-hidden="true" className="brand-rule mt-4 w-16 text-accent/40" />
-          <p className="mt-4 text-lg text-white/60 max-w-2xl">
+          <p className="mt-4 text-lg text-ink-muted max-w-2xl">
             Seven flagship experiences across two days — from pitch competitions to hackathons.
           </p>
         </header>

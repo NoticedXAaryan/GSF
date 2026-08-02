@@ -6,15 +6,15 @@ import {
 
 export function AboutSection() {
   return (
-    <section id="about" aria-labelledby="about-title" className="bg-[#0d0d0f] bg-noise section-padding">
+    <section id="about" aria-labelledby="about-title" className="bg-surface section-padding">
       <div className="site-container">
         <header className="max-w-3xl">
           <p className="mb-2 font-semibold uppercase tracking-widest text-primary">
             Our purpose
           </p>
-          <h2 id="about-title" className="font-bold text-white">About the Festival</h2>
+          <h2 id="about-title" className="font-bold text-ink">About the Festival</h2>
           <div aria-hidden="true" className="brand-rule mt-6 w-20 text-primary/40" />
-          <p className="mt-6 text-lg text-white/60">{ABOUT_DESCRIPTION}</p>
+          <p className="mt-6 text-lg text-ink-muted">{ABOUT_DESCRIPTION}</p>
         </header>
 
         {/* Organizers */}
@@ -22,7 +22,7 @@ export function AboutSection() {
           {FESTIVAL_ORGANIZERS.map((organizer, index) => (
             <article
               key={organizer.name}
-              className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:border-primary/30"
+              className="relative overflow-hidden rounded-2xl border border-surface-alt bg-canvas p-6 shadow-sm transition-all hover:border-primary hover:shadow-md"
             >
               <div className="flex items-center gap-4">
                 <span
@@ -31,17 +31,17 @@ export function AboutSection() {
                 >
                   {index + 1}
                 </span>
-                <h3 className="font-bold text-white">{organizer.name}</h3>
+                <h3 className="font-bold text-ink">{organizer.name}</h3>
               </div>
-              <p className="mt-4 text-white/60">{organizer.description}</p>
+              <p className="mt-4 text-ink-muted">{organizer.description}</p>
             </article>
           ))}
         </div>
 
         {/* Track record */}
-        <div className="mt-12 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="mt-12 overflow-hidden rounded-2xl border border-surface-alt bg-canvas shadow-sm">
           <div className="px-6 py-8 tablet:px-12">
-            <p className="text-center text-sm font-semibold uppercase tracking-widest text-white/50">
+            <p className="text-center text-sm font-semibold uppercase tracking-widest text-ink-muted">
               PIERC track record
             </p>
             <dl className="mt-8 grid grid-cols-2 gap-8 desktop:grid-cols-4">
@@ -50,7 +50,7 @@ export function AboutSection() {
                   <dd className="text-3xl font-extrabold leading-none text-accent tablet:text-4xl">
                     {statistic.value}
                   </dd>
-                  <dt className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/60">
+                  <dt className="mt-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">
                     {statistic.label}
                   </dt>
                 </div>

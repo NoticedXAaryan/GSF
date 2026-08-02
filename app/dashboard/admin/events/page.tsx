@@ -22,9 +22,11 @@ interface EventItem {
   status: string;
   capacity: number | null;
   currentRegistrations: number;
+  requiresShortlisting?: boolean;
   coordinatorName: string;
   targetAudience: string;
   registrationStatus: string;
+  pendingCount?: number;
 }
 
 function getStatusBadgeClass(status: string): string {
@@ -162,6 +164,14 @@ export default function AdminEventsPage() {
                       <h3 className="font-semibold text-fg">{event.name}</h3>
                       <Badge className={getStatusBadgeClass(event.status)}>{event.status}</Badge>
                       <Badge className={getTypeBadgeClass(event.type)}>{event.type}</Badge>
+                      {(event.requiresShortlisting || event.type === 'shortlisted') && (
+                        <Badge className="bg-volt text-void">Manual approval</Badge>
+                      )}
+                      {!!event.pendingCount && (
+                        <Badge className="bg-magenta text-void">
+                          {event.pendingCount} pending
+                        </Badge>
+                      )}
                     </div>
                     {event.description && (
                       <p className="text-sm text-fg-dim line-clamp-2">{event.description}</p>
@@ -175,15 +185,17 @@ export default function AdminEventsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    {event.type !== 'open' && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => router.push(`/dashboard/admin/events/${event.id}/applications`)}
-                      >
-                        Applications
-                      </Button>
-                    )}
+                    {/* Always reachable — admins may need to review or override
+                        decisions on any event, including open ones. */}
+                    <Button
+                      size="sm"
+                      variant={event.pendingCount ? 'primary' : 'secondary'}
+                      onClick={() => router.push(`/dashboard/admin/events/${event.id}/applications`)}
+                    >
+                      {event.pendingCount
+                        ? `Review ${event.pendingCount}`
+                        : 'Applications'}
+                    </Button>
                     <Button
                       size="sm"
                       variant="secondary"
@@ -227,6 +239,7 @@ export default function AdminEventsPage() {
                 venue: editingEvent.venue,
                 type: editingEvent.type as "open" | "registration" | "restricted" | "shortlisted",
                 capacity: editingEvent.capacity,
+                requiresShortlisting: editingEvent.requiresShortlisting ?? false,
                 coordinatorName: editingEvent.coordinatorName,
                 targetAudience: editingEvent.targetAudience,
                 status: editingEvent.status as "draft" | "published" | "archived",

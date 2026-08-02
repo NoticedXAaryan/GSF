@@ -37,7 +37,7 @@ export function FaqAccordion({ items }: FaqAccordionProps) {
   );
 
   return (
-    <div className="divide-y divide-white/10">
+    <div className="divide-y divide-surface-alt">
       {items.map((item) => (
         <FaqEntry
           key={item.id}
@@ -71,7 +71,7 @@ function FaqEntry({ item, isOpen, onToggle, reduceMotion }: FaqEntryProps) {
           aria-expanded={isOpen}
           aria-controls={panelId}
           onClick={() => onToggle(item.id)}
-          className="flex w-full items-center justify-between gap-4 py-2 text-left font-serif text-lg font-semibold text-white transition-colors hover:text-accent"
+          className="group flex w-full items-center justify-between gap-4 py-4 text-left font-serif text-xl font-semibold text-ink transition-colors hover:text-primary"
         >
           <span>{item.question}</span>
           <ChevronIcon isOpen={isOpen} reduceMotion={reduceMotion} />
@@ -82,7 +82,7 @@ function FaqEntry({ item, isOpen, onToggle, reduceMotion }: FaqEntryProps) {
         id={panelId}
         role="region"
         aria-labelledby={buttonId}
-        className="overflow-hidden"
+        className="overflow-hidden px-6"
         style={
           reduceMotion
             ? undefined
@@ -95,11 +95,11 @@ function FaqEntry({ item, isOpen, onToggle, reduceMotion }: FaqEntryProps) {
       >
         {reduceMotion ? (
           isOpen ? (
-            <div className="pt-2 pb-2 text-white/60">{item.answer}</div>
+            <div className="pb-6 text-lg leading-relaxed text-ink-muted">{item.answer}</div>
           ) : null
         ) : (
           <div className="min-h-0">
-            <div className="pt-2 pb-2 text-white/60">{item.answer}</div>
+            <div className="pb-6 text-lg leading-relaxed text-ink-muted">{item.answer}</div>
           </div>
         )}
       </div>
@@ -117,11 +117,11 @@ function ChevronIcon({
   return (
     <svg
       aria-hidden="true"
-      width="20"
-      height="20"
+      width="24"
+      height="24"
       viewBox="0 0 20 20"
       fill="none"
-      className="shrink-0 text-white/60"
+      className="shrink-0 text-ink-muted transition-colors group-hover:text-primary"
       style={{
         transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
         transition: reduceMotion ? "none" : "transform 300ms ease-out",
@@ -130,7 +130,7 @@ function ChevronIcon({
       <path
         d="M5 7.5L10 12.5L15 7.5"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

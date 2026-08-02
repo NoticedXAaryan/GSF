@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { motion, useScroll, useMotionValueEvent } from "motion/react";
@@ -22,20 +22,20 @@ const NAV_LINKS = [
 ] as const;
 
 export function SiteHeader({ viewer }: SiteHeaderProps) {
-  // states: "top", "floating", "hidden"
+  // "top" → transparent, floats over the hero
+  // "floating" → condensed glass pill
+  // "hidden" → tucked away while scrolling down
   const [navState, setNavState] = useState<"top" | "floating" | "hidden">("top");
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() || 0;
-    
+
     if (latest <= 40) {
       setNavState("top");
     } else if (latest > previous && latest > 100) {
-      // Scrolling down
       setNavState("hidden");
     } else if (latest < previous) {
-      // Scrolling up
       setNavState("floating");
     }
   });
@@ -45,74 +45,80 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 flex justify-center pointer-events-none">
-      <motion.header 
+      <motion.header
         initial={false}
         animate={{
-          width: isScrolled ? "min(95%, 65rem)" : "100%",
-          y: isHidden ? -100 : (isScrolled ? 16 : 0),
-          borderRadius: isScrolled ? "999px" : "0px",
-          backgroundColor: isScrolled ? "rgba(8, 8, 10, 0.95)" : "rgba(8, 8, 10, 0.8)",
-          boxShadow: isScrolled ? "0 20px 40px -10px rgba(0,0,0,0.5)" : "none",
+          width: isScrolled ? "min(94%, 64rem)" : "100%",
+          y: isHidden ? -120 : isScrolled ? 14 : 0,
+          borderRadius: isScrolled ? 999 : 0,
+          // Glass, not a black slab: transparent at rest, lightly frosted once condensed.
+          backgroundColor: isScrolled
+            ? "rgba(252, 251, 249, 0.85)"
+            : "rgba(252, 251, 249, 0)",
+          borderColor: isScrolled
+            ? "rgba(0, 0, 0, 0.06)"
+            : "rgba(0, 0, 0, 0)",
+          boxShadow: isScrolled
+            ? "0 18px 50px -18px rgba(0, 0, 0, 0.1)"
+            : "0 0 0 0 rgba(0, 0, 0, 0)",
         }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        transition={{ type: "spring", stiffness: 380, damping: 32 }}
         className={cn(
-          "pointer-events-auto border border-transparent backdrop-blur-xl transition-colors overflow-hidden",
-          isScrolled ? "border-white/10" : "border-b-white/10"
+          "pointer-events-auto border",
+          isScrolled && "backdrop-blur-xl backdrop-saturate-150"
         )}
       >
-        {/* Brand hairline echoing the logo's scarlet field */}
-        <motion.span 
-          aria-hidden="true" 
-          animate={{ opacity: isScrolled ? 0 : 1 }}
-          className="absolute inset-x-0 top-0 h-1.5 bg-primary" 
-        />
-        
-        <div className={cn(
-          "site-container flex items-center justify-between gap-4 transition-all duration-300",
-          isScrolled ? "h-14 px-6" : "h-20 px-4 tablet:px-8"
-        )}>
-          {/* Logo / Brand */}
+        <div
+          className={cn(
+            "site-container flex items-center justify-between gap-4 transition-all duration-300",
+            isScrolled ? "h-14 px-5 tablet:px-6" : "h-20 px-4 tablet:px-8"
+          )}
+        >
+          {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <img
               src="/logo.png"
               alt="Goa Startup Festival 2026"
               className={cn(
                 "w-auto object-contain transition-all duration-300",
-                isScrolled ? "h-7" : "h-10 tablet:h-12"
+                isScrolled ? "h-8" : "h-10 tablet:h-12"
               )}
             />
             <span className="sr-only">GSF 2026</span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop nav */}
           <nav
             aria-label="Main navigation"
-            className="hidden desktop:flex items-center gap-8"
+            className={cn(
+              "hidden desktop:flex items-center transition-all duration-300",
+              isScrolled ? "gap-7" : "gap-8"
+            )}
           >
             {NAV_LINKS.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "group relative font-bold transition-colors hover:text-accent",
-                  isScrolled ? "text-xs text-white/80 py-1" : "text-sm text-white/60 py-2"
+                  "group relative py-1.5 font-bold text-ink-muted transition-colors hover:text-ink",
+                  isScrolled ? "text-[13px]" : "text-sm"
                 )}
               >
                 {link.label}
                 <span
                   aria-hidden="true"
-                  className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100"
+                  className="absolute inset-x-0 -bottom-0.5 h-px origin-left scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100"
                 />
               </a>
             ))}
           </nav>
 
-          {/* Desktop Auth Actions */}
+          {/* Desktop auth actions */}
           <div className="hidden desktop:flex items-center gap-4">
             {viewer.authenticated ? (
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2 group"
+                className="group flex items-center gap-2"
                 aria-label="Dashboard"
               >
                 {viewer.image ? (
@@ -121,8 +127,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                     alt=""
                     aria-hidden="true"
                     className={cn(
-                      "rounded-pill object-cover border border-surface-alt group-hover:border-primary transition-all duration-300",
-                      isScrolled ? "h-7 w-7" : "h-9 w-9"
+                      "rounded-pill border border-surface-alt object-cover transition-all duration-300 group-hover:border-accent",
+                      isScrolled ? "h-8 w-8" : "h-9 w-9"
                     )}
                     referrerPolicy="no-referrer"
                   />
@@ -130,8 +136,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                   <div
                     aria-hidden="true"
                     className={cn(
-                      "flex items-center justify-center rounded-pill bg-primary text-surface border border-primary/20 transition-all duration-300",
-                      isScrolled ? "h-7 w-7 text-xs font-bold" : "h-9 w-9 text-sm font-bold"
+                      "flex items-center justify-center rounded-pill bg-primary font-bold text-surface transition-all duration-300 group-hover:bg-primary-strong",
+                      isScrolled ? "h-8 w-8 text-xs" : "h-9 w-9 text-sm"
                     )}
                   >
                     {viewer.name ? viewer.name.charAt(0).toUpperCase() : "U"}
@@ -143,8 +149,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 <Link
                   href="/login"
                   className={cn(
-                    "font-bold transition-colors hover:text-primary",
-                    isScrolled ? "text-xs text-ink" : "text-sm text-ink-muted"
+                    "font-bold text-ink-muted transition-colors hover:text-ink",
+                    isScrolled ? "text-[13px]" : "text-sm"
                   )}
                 >
                   Login
@@ -152,8 +158,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 <Link
                   href="/signup"
                   className={cn(
-                    "inline-flex items-center justify-center rounded-full bg-primary font-bold text-surface shadow-sm transition-colors hover:bg-primary-strong",
-                    isScrolled ? "px-4 py-1.5 text-xs" : "px-6 py-2.5 text-sm"
+                    "inline-flex items-center justify-center rounded-pill bg-primary font-bold text-surface transition-colors hover:bg-primary-strong",
+                    isScrolled ? "px-5 py-2 text-[13px]" : "px-6 py-2.5 text-sm"
                   )}
                 >
                   Register
@@ -162,12 +168,12 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
             )}
           </div>
 
-          {/* Mobile hamburger trigger */}
+          {/* Mobile hamburger */}
           <button
             type="button"
             aria-label="Open navigation menu"
             aria-haspopup="dialog"
-            className="desktop:hidden flex items-center justify-center min-h-touch min-w-touch text-ink-muted transition-colors hover:text-ink"
+            className="desktop:hidden flex min-h-touch min-w-touch items-center justify-center rounded-pill text-ink-muted transition-colors hover:text-ink"
             data-mobile-nav-trigger
           >
             <Menu size={24} aria-hidden="true" />

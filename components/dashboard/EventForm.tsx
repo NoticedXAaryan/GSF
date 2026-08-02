@@ -19,6 +19,8 @@ export interface EventFormData {
   capacity: number | null;
   coordinatorName: string;
   targetAudience: string;
+  /** When true, applications land as "pending" and need admin accept/reject. */
+  requiresShortlisting?: boolean;
   status?: EventStatus;
 }
 
@@ -95,6 +97,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [capacity, setCapacity] = useState(event?.capacity != null ? String(event.capacity) : "");
   const [coordinatorName, setCoordinatorName] = useState(event?.coordinatorName ?? "");
   const [targetAudience, setTargetAudience] = useState(event?.targetAudience ?? "");
+  const [requiresShortlisting, setRequiresShortlisting] = useState(
+    event?.requiresShortlisting ?? false
+  );
   const [status, setStatus] = useState<EventStatus>(event?.status ?? "draft");
 
   // Validation and submission state
@@ -159,8 +164,8 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         targetAudience: targetAudience.trim() || "all",
       };
 
-      // Automatically set requiresShortlisting based on type
-      (formData as unknown as Record<string, unknown>).requiresShortlisting = type === 'shortlisted';
+      // "Shortlisted" always needs review; otherwise honour the explicit toggle.
+      formData.requiresShortlisting = type === "shortlisted" || requiresShortlisting;
 
       if (isEditMode) {
         formData.status = status;
@@ -338,6 +343,30 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           placeholder="Leave blank for unlimited"
           error={errors.capacity}
         />
+      </div>
+
+      {/* Manual approval toggle */}
+      <div className="rounded-tile border border-line bg-panel-alt p-4">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            name="requiresShortlisting"
+            checked={type === "shortlisted" || requiresShortlisting}
+            disabled={type === "shortlisted"}
+            onChange={(e) => setRequiresShortlisting(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-lime disabled:opacity-60"
+          />
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-fg">
+              Require manual approval
+            </span>
+            <span className="mt-0.5 block text-xs text-fg-dim">
+              {type === "shortlisted"
+                ? 'Always on for "Shortlisted" events.'
+                : "Applicants land as Pending and you accept or reject each one. Leave off to auto-accept until capacity is full."}
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* Coordinator Name */}

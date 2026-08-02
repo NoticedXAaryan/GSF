@@ -1,0 +1,1 @@
+import { db } from '../lib/db'; import { events } from '../lib/schema'; import { eq } from 'drizzle-orm'; async function main() { const result = await db.select({ name: events.name }).from(events).where(eq(events.status, "published")); console.log(result.map(e => e.name)); process.exit(0); } main();

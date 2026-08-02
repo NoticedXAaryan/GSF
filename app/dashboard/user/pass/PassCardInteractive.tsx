@@ -171,7 +171,7 @@ export function PassCardInteractive({ pass, userName, userRole }: PassCardIntera
               {/* Sweep line while scanning */}
               {scanning && (
                 <span
-                  className="pointer-events-none absolute inset-x-0 top-0 h-1/3 animate-scan-sweep bg-gradient-to-b from-transparent via-lime/70 to-transparent"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1/3 animate-scan-sweep bg-lime/40"
                   aria-hidden="true"
                 />
               )}
