@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { CalendarDays, MapPin, ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
