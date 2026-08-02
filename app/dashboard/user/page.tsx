@@ -12,209 +12,373 @@ import {
   announcements,
   desks,
 } from '@/lib/schema';
-import { PassCard, ApplicationList, AnnouncementFeed } from '@/components/dashboard';
+import {
+  BentoCard,
+  Eyebrow,
+  Metric,
+  ProgressBar,
+  Hairline,
+  IconChip,
+  Chip,
+  MiniBars,
+} from '@/components/ui/bento';
 import { RegisterFestivalButton } from './RegisterFestivalButton';
+import {
+  Ticket,
+  FileText,
+  Calendar,
+  Megaphone,
+  ArrowUpRight,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react';
 
 /**
- * Attendee Dashboard — Server Component
- * Fetches user profile, pass, applications, and announcements server-side.
- * Composes with PassCard, ApplicationList, and AnnouncementFeed components.
+ * Attendee dashboard home — bento layout.
  *
- * Requirements: 9.1, 9.2, 9.3, 9.5, 9.6
+ * Structure mirrors the design language: oversized greeting, an onboarding
+ * progress strip, then a grid of discrete accent-filled blocks each carrying a
+ * single idea (pass, applications, schedule, announcements).
  */
 export default async function AttendeeDashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect('/login');
-  }
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect('/login');
 
   const userId = session.user.id;
 
-  // Fetch user profile
   const [userProfile] = await db
     .select({
       id: user.id,
       name: user.name,
-      email: user.email,
       role: user.role,
-      phone: user.phone,
-      collegeDept: user.collegeDept,
       profileComplete: user.profileComplete,
-      passId: user.passId,
     })
     .from(user)
     .where(eq(user.id, userId))
     .limit(1);
 
-  if (!userProfile) {
-    redirect('/login');
-  }
+  if (!userProfile) redirect('/login');
 
-  // Fetch clearance pass
   const [pass] = await db
-    .select({
-      passId: clearancePasses.passId,
-      qrToken: clearancePasses.qrToken,
-      issuedAt: clearancePasses.issuedAt,
-    })
+    .select({ passId: clearancePasses.passId })
     .from(clearancePasses)
     .where(eq(clearancePasses.uid, userId))
     .limit(1);
 
-  // Fetch applications joined with events
   const userApplications = await db
     .select({
-      id: applications.id,
-      subEventId: applications.subEventId,
       status: applications.status,
-      appliedAt: applications.appliedAt,
+      subEventId: applications.subEventId,
       eventName: events.name,
       eventDate: events.date,
-      eventVenue: events.venue,
-      eventType: events.type,
     })
     .from(applications)
     .leftJoin(events, eq(applications.subEventId, events.id))
     .where(eq(applications.uid, userId))
     .orderBy(desc(applications.appliedAt));
 
-  // Fetch announcements targeted at this user
-  const userRole = userProfile.role;
+  const totalApplications = userApplications.length;
+  const acceptedApplications = userApplications.filter((a) => a.status === 'accepted').length;
+  const pendingApplications = userApplications.filter((a) => a.status === 'pending').length;
 
-  // Get sub-event IDs from accepted applications
-  const acceptedAppEventIds = userApplications
-    .filter((app) => app.status === 'accepted')
-    .map((app) => app.subEventId);
+  // Published events available to browse
+  const [{ count: publishedEvents } = { count: 0 }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(events)
+    .where(eq(events.status, 'published'));
 
-  // Get sub-event IDs where user is assigned as volunteer
+  // Announcements targeted at this viewer
+  const acceptedEventIds = userApplications
+    .filter((a) => a.status === 'accepted')
+    .map((a) => a.subEventId);
+
   const volunteerDesks = await db
     .select({ subEventId: desks.subEventId })
     .from(desks)
     .where(sql`${userId} = ANY(${desks.assignedVolunteerUids})`);
 
-  const assignedEventIds = volunteerDesks.map((d) => d.subEventId);
-
-  // Combine all sub-event IDs
-  const allEventIds = [...new Set([...acceptedAppEventIds, ...assignedEventIds])];
-
-  // Build audience filter
-  const audienceConditions = [
-    eq(announcements.audience, 'all'),
-    eq(announcements.audience, userRole),
+  const allEventIds = [
+    ...new Set([...acceptedEventIds, ...volunteerDesks.map((d) => d.subEventId)]),
   ];
 
+  const audienceConditions = [
+    eq(announcements.audience, 'all'),
+    eq(announcements.audience, userProfile.role),
+  ];
   if (allEventIds.length > 0) {
     audienceConditions.push(inArray(announcements.audience, allEventIds));
   }
 
-  const userAnnouncements = await db
+  const recentAnnouncements = await db
     .select({
       id: announcements.id,
       title: announcements.title,
-      body: announcements.body,
       priority: announcements.priority,
       createdAt: announcements.createdAt,
     })
     .from(announcements)
     .where(or(...audienceConditions))
-    .orderBy(desc(announcements.createdAt));
+    .orderBy(desc(announcements.createdAt))
+    .limit(3);
 
-  // Determine dashboard state
   const isProfileComplete = userProfile.profileComplete ?? false;
   const hasPass = !!pass;
+  const hasApplied = totalApplications > 0;
+
+  // Onboarding completion across three checkpoints
+  const steps = [
+    { label: 'Profile', done: isProfileComplete },
+    { label: 'Registered', done: hasPass },
+    { label: 'Applied', done: hasApplied },
+  ];
+  const completed = steps.filter((s) => s.done).length;
+  const completion = Math.round((completed / steps.length) * 100);
+
+  const firstName = userProfile.name.split(' ')[0];
+  const nextEvent = userApplications.find((a) => a.status === 'accepted' && a.eventName);
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Welcome, {userProfile.name}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Your festival dashboard — pass, applications, and announcements.
-        </p>
+    <div className="mx-auto max-w-6xl space-y-4">
+      {/* ---------- Greeting ---------- */}
+      <div className="flex flex-wrap items-end justify-between gap-4 px-1 pt-1">
+        <div>
+          <Eyebrow>Your festival</Eyebrow>
+          <h1 className="mt-1 text-4xl font-bold leading-none tracking-tighter lg:text-5xl">
+            Hi, {firstName}
+          </h1>
+        </div>
+        <Chip>{userProfile.role}</Chip>
       </div>
 
-      {/* Profile Completion Prompt */}
+      {/* ---------- Onboarding progress ---------- */}
+      <BentoCard index={0}>
+        <div className="flex items-baseline justify-between">
+          <Eyebrow>Setup progress</Eyebrow>
+          <Metric className="text-2xl">{completion}%</Metric>
+        </div>
+        <ProgressBar value={completion} className="mt-3" label="Festival setup progress" />
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          {steps.map((s) => (
+            <span
+              key={s.label}
+              className={cnStep(s.done)}
+            >
+              <CheckCircle2
+                className={`h-3.5 w-3.5 ${s.done ? 'text-primary' : 'text-fg-dim/40'}`}
+                aria-hidden="true"
+              />
+              {s.label}
+            </span>
+          ))}
+        </div>
+      </BentoCard>
+
+      {/* ---------- Action prompts ---------- */}
       {!isProfileComplete && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-lg font-medium text-amber-900">
-            Complete Your Profile
-          </h2>
-          <p className="mt-1 text-sm text-amber-700">
-            You need to complete your profile before you can register for the
-            festival and apply to sub-events.
-          </p>
+        <BentoCard tone="volt" index={1}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <Eyebrow tone="volt">Action needed</Eyebrow>
+              <h2 className="mt-1 text-2xl font-bold leading-tight tracking-tight">
+                Complete your profile
+              </h2>
+              <p className="mt-1 max-w-md text-sm text-surface/90">
+                Add your details to unlock festival registration and sub-event
+                applications.
+              </p>
+            </div>
+            <IconChip tone="volt">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
           <Link
             href="/dashboard/user/complete-profile"
-            className="mt-4 inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-bold tracking-tight text-secondary transition-opacity hover:opacity-90"
           >
-            Complete Profile
+            Complete profile
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-        </div>
+        </BentoCard>
       )}
 
-      {/* Festival Registration Prompt */}
       {isProfileComplete && !hasPass && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-          <h2 className="text-lg font-medium text-blue-900">
-            Register for the Festival
-          </h2>
-          <p className="mt-1 text-sm text-blue-700">
-            Your profile is complete. Register now to get your digital pass and
-            apply to sub-events.
-          </p>
-          <RegisterFestivalButton />
-        </div>
+        <BentoCard tone="lime" index={1}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <Eyebrow tone="lime">One step left</Eyebrow>
+              <h2 className="mt-1 text-2xl font-bold leading-tight tracking-tight">
+                Register for the festival
+              </h2>
+              <p className="mt-1 max-w-md text-sm text-surface/90">
+                Claim your digital pass and start applying to sub-events.
+              </p>
+            </div>
+            <IconChip tone="lime">
+              <Ticket className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
+          <div className="mt-4">
+            <RegisterFestivalButton />
+          </div>
+        </BentoCard>
       )}
 
-      {/* Pass Card */}
-      <section>
-        <h2 className="text-lg font-medium text-gray-900 mb-3">My Pass</h2>
-        <PassCard
-          pass={pass ?? null}
-          userName={userProfile.name}
-          userRole={userProfile.role}
-        />
-      </section>
+      {/* ---------- Bento grid ---------- */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* Pass — wide feature tile */}
+        <BentoCard
+          tone={hasPass ? 'lime' : 'panel'}
+          className="col-span-2 flex flex-col justify-between"
+          index={2}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <Eyebrow tone={hasPass ? 'lime' : 'panel'}>Festival pass</Eyebrow>
+              <Metric className="mt-2">{hasPass ? pass.passId : 'Not issued'}</Metric>
+            </div>
+            <IconChip tone={hasPass ? 'lime' : 'panel'}>
+              <Ticket className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
+          <Hairline tone={hasPass ? 'lime' : 'panel'} className="my-4" />
+          {hasPass ? (
+            <Link
+              href="/dashboard/user/pass"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-surface px-4 py-2 text-xs font-bold tracking-tight text-primary transition-opacity hover:opacity-90"
+            >
+              Show QR
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          ) : (
+            <p className="text-sm text-fg-dim">
+              Register for the festival to get your pass.
+            </p>
+          )}
+        </BentoCard>
 
-      {/* Applications */}
-      <section>
-        <h2 className="text-lg font-medium text-gray-900 mb-3">
-          My Applications
-        </h2>
-        <ApplicationList
-          applications={userApplications.map((app) => ({
-            id: app.id,
-            subEventId: app.subEventId,
-            status: app.status as "pending" | "accepted" | "waitlisted" | "rejected",
-            appliedAt: app.appliedAt,
-            eventName: app.eventName,
-            eventDate: app.eventDate,
-            eventVenue: app.eventVenue,
-            eventType: app.eventType,
-          }))}
-        />
-      </section>
+        {/* Applications */}
+        <BentoCard tone="magenta" className="flex flex-col justify-between" index={3}>
+          <div className="flex items-start justify-between gap-2">
+            <Eyebrow tone="magenta">Applications</Eyebrow>
+            <IconChip tone="magenta">
+              <FileText className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
+          <Metric className="mt-4 text-4xl">{totalApplications}</Metric>
+          <div className="mt-3 space-y-1 text-xs font-semibold text-surface/90">
+            <p>{acceptedApplications} accepted</p>
+            <p>{pendingApplications} pending</p>
+          </div>
+          <Link
+            href="/dashboard/user/applications"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold tracking-tight text-surface"
+          >
+            View all
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </BentoCard>
 
-      {/* Announcements */}
-      <section>
-        <h2 className="text-lg font-medium text-gray-900 mb-3">
-          Announcements
-        </h2>
-        <AnnouncementFeed
-          announcements={userAnnouncements.map((ann) => ({
-            id: ann.id,
-            title: ann.title,
-            body: ann.body,
-            priority: ann.priority,
-            createdAt: ann.createdAt,
-          }))}
-        />
-      </section>
+        {/* Schedule */}
+        <BentoCard tone="azure" className="flex flex-col justify-between" index={4}>
+          <div className="flex items-start justify-between gap-2">
+            <Eyebrow tone="azure">Events live</Eyebrow>
+            <IconChip tone="azure">
+              <Calendar className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
+          <Metric className="mt-4 text-4xl">{publishedEvents}</Metric>
+          <MiniBars
+            tone="azure"
+            data={[4, 7, 5, 9, 6, 8, 10]}
+            className="mt-3"
+          />
+          <Link
+            href="/dashboard/user/schedule"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold tracking-tight text-surface"
+          >
+            Browse
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </BentoCard>
+
+        {/* Next accepted event */}
+        <BentoCard tone="panel" className="col-span-2 flex flex-col justify-between" index={5}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <Eyebrow>Next up for you</Eyebrow>
+              {nextEvent ? (
+                <>
+                  <h3 className="mt-2 truncate text-xl font-bold tracking-tight">
+                    {nextEvent.eventName}
+                  </h3>
+                  {nextEvent.eventDate && (
+                    <p className="mt-1 text-sm text-fg-dim">{nextEvent.eventDate}</p>
+                  )}
+                </>
+              ) : (
+                <p className="mt-2 text-sm text-fg-dim">
+                  No accepted sub-events yet. Apply from the schedule to reserve
+                  your spot.
+                </p>
+              )}
+            </div>
+            <IconChip>
+              <Calendar className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
+          {nextEvent && <Chip tone="panel" className="mt-4 self-start">Accepted</Chip>}
+        </BentoCard>
+
+        {/* Announcements */}
+        <BentoCard tone="inverse" className="col-span-2 flex flex-col justify-between" index={6}>
+          <div className="flex items-start justify-between gap-3">
+            <Eyebrow tone="inverse">
+              Announcements ({recentAnnouncements.length})
+            </Eyebrow>
+            <IconChip tone="inverse">
+              <Megaphone className="h-4 w-4" aria-hidden="true" />
+            </IconChip>
+          </div>
+
+          {recentAnnouncements.length === 0 ? (
+            <p className="mt-4 text-sm text-on-inverse/60">Nothing new right now.</p>
+          ) : (
+            <ul className="mt-4 space-y-2.5">
+              {recentAnnouncements.map((a) => (
+                <li key={a.id} className="flex items-start gap-2.5">
+                  <span
+                    className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+                      a.priority === 'high'
+                        ? 'bg-primary-strong'
+                        : a.priority === 'normal'
+                          ? 'bg-primary'
+                          : 'bg-on-inverse/40'
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <span className="truncate text-sm font-medium">{a.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <Link
+            href="/dashboard/user/announcements"
+            className="mt-5 inline-flex items-center justify-between rounded-full bg-on-inverse/10 px-4 py-2.5 text-xs font-bold tracking-tight transition-colors hover:bg-on-inverse/15"
+          >
+            Open announcements
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </BentoCard>
+      </div>
     </div>
   );
+}
+
+/** Step chip class helper — keeps the JSX above readable. */
+function cnStep(done: boolean): string {
+  return [
+    'inline-flex items-center gap-1.5 text-xs font-semibold tracking-tight',
+    done ? 'text-fg' : 'text-fg-dim',
+  ].join(' ');
 }

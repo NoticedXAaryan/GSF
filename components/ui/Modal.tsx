@@ -92,23 +92,23 @@ function Modal({ open, onClose, title, className, children }: ModalProps) {
         aria-labelledby={title ? "modal-title" : undefined}
         tabIndex={-1}
         className={cn(
-          "relative z-10 w-full max-w-lg rounded-lg bg-white shadow-xl",
+          "relative z-10 w-full max-w-lg rounded-bento border border-line bg-panel text-fg shadow-xl",
           "animate-[modalIn_200ms_ease-out]",
           "outline-none",
           className
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
           {title && (
-            <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
+            <h2 id="modal-title" className="text-lg font-semibold text-fg">
               {title}
             </h2>
           )}
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-fg-dim hover:bg-panel-alt hover:text-fg focus:outline-none focus:ring-2 focus:ring-lime"
             aria-label="Close"
           >
             <svg
@@ -135,4 +135,37 @@ function Modal({ open, onClose, title, className, children }: ModalProps) {
   );
 }
 
-export { Modal };
+interface ModalSectionProps {
+  className?: string;
+  children: React.ReactNode;
+}
+
+/** Optional title row for modals rendered without the `title` prop. */
+function ModalHeader({ className, children }: ModalSectionProps) {
+  return (
+    <div className={cn("-mt-2 mb-4 text-lg font-semibold text-fg", className)}>
+      {children}
+    </div>
+  );
+}
+
+/** Scrollable content region. */
+function ModalBody({ className, children }: ModalSectionProps) {
+  return <div className={cn("text-sm text-fg", className)}>{children}</div>;
+}
+
+/** Right-aligned action row. */
+function ModalFooter({ className, children }: ModalSectionProps) {
+  return (
+    <div
+      className={cn(
+        "mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+export { Modal, ModalHeader, ModalBody, ModalFooter };

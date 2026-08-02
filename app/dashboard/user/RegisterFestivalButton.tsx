@@ -34,16 +34,18 @@ export function RegisterFestivalButton() {
   }
 
   return (
-    <div className="mt-4">
+    <div>
       {error && (
-        <p className="mb-2 text-sm text-red-600">{error}</p>
+        <p className="mb-2 text-sm font-semibold text-void/70" role="alert">
+          {error}
+        </p>
       )}
       <button
         onClick={handleRegister}
         disabled={loading}
-        className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-void px-5 py-2.5 text-sm font-bold tracking-tight text-lime transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? 'Registering...' : 'Register for Festival'}
+        {loading ? 'Registering…' : 'Get my pass'}
       </button>
     </div>
   );

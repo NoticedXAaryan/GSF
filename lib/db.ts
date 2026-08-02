@@ -12,7 +12,7 @@ const pool =
     // Production-grade pool configuration
     max: 20,
     idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000,
+    connectionTimeoutMillis: 15_000, // Increased to 15s to allow Neon DB to wake up from cold start
   });
 
 if (process.env.NODE_ENV !== 'production') {

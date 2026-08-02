@@ -22,9 +22,10 @@ export default async function DashboardLayout({
   }
 
   const role = (session.user as { role?: string })?.role || 'Attendee';
+  const userImage = (session.user as { image?: string | null })?.image ?? null;
 
   return (
-    <DashboardShell role={role} userName={session.user.name || 'User'}>
+    <DashboardShell role={role} userName={session.user.name || 'User'} userImage={userImage}>
       {children}
     </DashboardShell>
   );

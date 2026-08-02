@@ -27,9 +27,9 @@ function getProgressPercentage(tasks: Task[]): number {
 }
 
 function getProgressColor(percentage: number): string {
-  if (percentage > 75) return "bg-green-500";
-  if (percentage >= 25) return "bg-yellow-500";
-  return "bg-red-500";
+  if (percentage > 75) return "bg-lime";
+  if (percentage >= 25) return "bg-volt";
+  return "bg-magenta";
 }
 
 function isOverdue(task: Task): boolean {
@@ -65,12 +65,12 @@ export function TaskChecklist({
     <Card>
       <CardHeader className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">{checklist.title}</h3>
+          <h3 className="font-semibold text-fg">{checklist.title}</h3>
           {isAdmin && onTaskAdd && (
             <button
               type="button"
               onClick={onTaskAdd}
-              className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 transition-colors min-h-[44px] min-w-[44px] justify-center"
+              className="inline-flex items-center gap-1 rounded-full bg-lime px-3 py-1.5 text-xs font-bold text-void hover:opacity-90 transition-opacity min-h-[44px] min-w-[44px] justify-center"
               aria-label="Add task"
             >
               <svg
@@ -90,13 +90,13 @@ export function TaskChecklist({
 
         {/* Progress bar */}
         <div className="space-y-1">
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center justify-between text-sm text-fg-dim">
             <span>
               {completedCount} / {totalCount} tasks complete
             </span>
             <span className="font-medium">{progress}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-panel-alt overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${getProgressColor(progress)}`}
               style={{ width: `${progress}%` }}
@@ -112,15 +112,15 @@ export function TaskChecklist({
 
       <CardBody className="p-0">
         {totalCount === 0 ? (
-          <p className="px-6 py-4 text-center text-sm text-gray-500">
+          <p className="px-6 py-4 text-center text-sm text-fg-dim">
             No tasks in this checklist yet.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-line">
             {checklist.tasks.map((task) => (
               <li
                 key={task.id}
-                className="flex items-start gap-3 px-6 py-3 hover:bg-gray-50 transition-colors"
+                className="flex items-start gap-3 px-6 py-3 hover:bg-panel-alt transition-colors"
               >
                 {/* Checkbox */}
                 <label className="flex items-center min-h-[44px] min-w-[44px] justify-center cursor-pointer">
@@ -128,7 +128,7 @@ export function TaskChecklist({
                     type="checkbox"
                     checked={task.completed}
                     onChange={() => onTaskToggle(task.id, !task.completed)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-4 w-4 rounded border-line accent-lime focus:ring-lime"
                     aria-label={`Mark "${task.title}" as ${task.completed ? "incomplete" : "complete"}`}
                   />
                 </label>
@@ -138,19 +138,19 @@ export function TaskChecklist({
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={`text-sm font-medium ${
-                        task.completed ? "text-gray-400 line-through" : "text-gray-900"
+                        task.completed ? "text-fg-dim line-through" : "text-fg"
                       }`}
                     >
                       {task.title}
                     </span>
                     {isOverdue(task) && (
-                      <Badge className="bg-red-100 text-red-800">Overdue</Badge>
+                      <Badge className="bg-magenta text-void">Overdue</Badge>
                     )}
                   </div>
                   {task.description && (
                     <p
                       className={`mt-0.5 text-xs ${
-                        task.completed ? "text-gray-300" : "text-gray-500"
+                        task.completed ? "text-fg-dim/60" : "text-fg-dim"
                       }`}
                     >
                       {task.description}
@@ -158,7 +158,7 @@ export function TaskChecklist({
                   )}
                   <span
                     className={`mt-1 inline-block text-xs ${
-                      task.completed ? "text-gray-300" : "text-gray-400"
+                      task.completed ? "text-fg-dim/60" : "text-fg-dim"
                     }`}
                   >
                     Due: {formatDueDate(task.dueDate)}
@@ -172,7 +172,7 @@ export function TaskChecklist({
                       <button
                         type="button"
                         onClick={() => onTaskEdit(task.id)}
-                        className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full p-2 text-fg-dim hover:text-fg hover:bg-panel-alt transition-colors"
                         aria-label={`Edit task "${task.title}"`}
                       >
                         <svg
@@ -195,7 +195,7 @@ export function TaskChecklist({
                       <button
                         type="button"
                         onClick={() => onTaskDelete(task.id)}
-                        className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full p-2 text-fg-dim hover:text-magenta hover:bg-panel-alt transition-colors"
                         aria-label={`Delete task "${task.title}"`}
                       >
                         <svg

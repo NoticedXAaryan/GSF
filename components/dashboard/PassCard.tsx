@@ -21,9 +21,9 @@ export function PassCard({ pass, userName, userRole }: PassCardProps) {
     return (
       <Card className="text-center">
         <CardBody className="py-10">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-panel-alt">
             <svg
-              className="h-8 w-8 text-gray-400"
+              className="h-8 w-8 text-fg-dim"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
@@ -37,7 +37,7 @@ export function PassCard({ pass, userName, userRole }: PassCardProps) {
               />
             </svg>
           </div>
-          <p className="text-gray-600">
+          <p className="text-fg-dim">
             No pass issued yet. Complete your profile and register for the
             festival.
           </p>
@@ -49,7 +49,8 @@ export function PassCard({ pass, userName, userRole }: PassCardProps) {
   return (
     <Card>
       <CardBody className="flex flex-col items-center gap-4 py-6 sm:flex-row sm:items-start sm:gap-6">
-        <div className="flex-shrink-0 rounded-lg border border-gray-100 bg-white p-3">
+        {/* QR backing field stays white so scanners keep maximum contrast. */}
+        <div className="flex-shrink-0 rounded-tile border border-line bg-white p-3">
           <QRCodeSVG
             value={pass.qrToken}
             size={160}
@@ -59,14 +60,14 @@ export function PassCard({ pass, userName, userRole }: PassCardProps) {
         </div>
 
         <div className="flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
-          <p className="font-mono text-xl font-bold tracking-wide text-gray-900">
+          <p className="font-mono text-xl font-bold tracking-wide text-fg">
             {pass.passId}
           </p>
-          <p className="text-lg text-gray-700">{userName}</p>
+          <p className="text-lg text-fg-dim">{userName}</p>
           <Badge variant="default" className="capitalize">
             {userRole}
           </Badge>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-fg-dim">
             Issued{" "}
             {new Date(pass.issuedAt).toLocaleDateString("en-IN", {
               day: "numeric",

@@ -1,5 +1,6 @@
 // Dashboard component barrel exports
 export { PassCard } from "./PassCard";
+export { PageHeader } from "./PageHeader";
 export { AnnouncementFeed } from "./AnnouncementFeed";
 export type { AnnouncementItem } from "./AnnouncementFeed";
 export { ApplicationList } from "./ApplicationList";

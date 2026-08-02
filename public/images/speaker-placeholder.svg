@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Speaker profile placeholder</title>
+  <desc id="description">A neutral silhouette used until a festival speaker photograph is announced.</desc>
+  <rect width="512" height="512" rx="32" fill="#f3e7d7"/>
+  <circle cx="256" cy="190" r="92" fill="#c2412d"/>
+  <path d="M96 466c0-97 72-170 160-170s160 73 160 170" fill="#c2412d"/>
+  <circle cx="416" cy="96" r="42" fill="#0f766e"/>
+  <path d="M416 78v36M398 96h36" stroke="#fff8ef" stroke-width="12" stroke-linecap="round"/>
+</svg>

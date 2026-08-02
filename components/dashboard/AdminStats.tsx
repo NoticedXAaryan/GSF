@@ -35,10 +35,10 @@ function StatCard({
   className?: string;
 }) {
   return (
-    <Card className={className}>
+    <Card className={cn("animate-tile-in", className)}>
       <CardBody className="text-center">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="mt-1 text-sm text-gray-500">{label}</p>
+        <p className="text-2xl font-bold text-fg">{value}</p>
+        <p className="mt-1 text-sm text-fg-dim">{label}</p>
       </CardBody>
     </Card>
   );
@@ -54,16 +54,16 @@ function StatusBadge({
   variant: "pending" | "accepted" | "waitlisted" | "rejected";
 }) {
   const colors = {
-    pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    accepted: "bg-green-50 text-green-700 border-green-200",
-    waitlisted: "bg-blue-50 text-blue-700 border-blue-200",
-    rejected: "bg-red-50 text-red-700 border-red-200",
+    pending: "bg-volt text-void",
+    accepted: "bg-lime text-void",
+    waitlisted: "bg-azure text-void",
+    rejected: "bg-panel-alt text-fg-dim",
   };
 
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-md border px-4 py-3",
+        "flex items-center justify-between rounded-tile px-4 py-3",
         colors[variant]
       )}
     >
@@ -82,22 +82,22 @@ function CapacityBar({ event }: { event: EventCapacity }) {
 
   const barColor =
     percentage >= 90
-      ? "bg-red-500"
+      ? "bg-magenta"
       : percentage >= 70
-        ? "bg-yellow-500"
-        : "bg-green-500";
+        ? "bg-volt"
+        : "bg-lime";
 
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-700 truncate max-w-[200px]">
+        <span className="font-medium text-fg truncate max-w-[200px]">
           {event.eventName}
         </span>
-        <span className="text-gray-500">
+        <span className="text-fg-dim">
           {event.currentRegistrations}/{capacity}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-panel-alt">
         <div
           className={cn("h-full rounded-full transition-all", barColor)}
           style={{ width: `${percentage}%` }}
@@ -131,7 +131,7 @@ export function AdminStats({ stats }: AdminStatsProps) {
       {/* Applications by status */}
       <Card>
         <CardHeader>
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-fg">
             Applications by Status
           </h3>
         </CardHeader>
@@ -165,7 +165,7 @@ export function AdminStats({ stats }: AdminStatsProps) {
       {stats.eventsCapacity.length > 0 && (
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-fg">
               Event Capacity Utilization
             </h3>
           </CardHeader>

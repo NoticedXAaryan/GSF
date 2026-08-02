@@ -1,16 +1,21 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+/**
+ * Status pill. Accent variants use near-black text on a neon fill so they stay
+ * legible in both themes; neutral variants ride the theme tokens.
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+  "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold tracking-tight",
   {
     variants: {
       variant: {
-        default: "bg-gray-100 text-gray-800",
-        pending: "bg-yellow-100 text-yellow-800",
-        accepted: "bg-green-100 text-green-800",
-        rejected: "bg-red-100 text-red-800",
-        waitlisted: "bg-blue-100 text-blue-800",
+        default: "bg-panel-alt text-fg-dim",
+        pending: "bg-volt text-void",
+        accepted: "bg-lime text-void",
+        rejected: "bg-panel-alt text-fg-dim",
+        waitlisted: "bg-azure text-void",
+        priority: "bg-magenta text-void",
       },
     },
     defaultVariants: {

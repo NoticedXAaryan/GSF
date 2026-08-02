@@ -1,10 +1,12 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import { resolveDashboardPath } from '@/lib/landing/auth-routing';
 
 /**
  * Dashboard router — Server Component that redirects authenticated users
  * to their role-appropriate dashboard sub-page.
+ * Uses the canonical resolveDashboardPath resolver for consistent role routing.
  * This page never renders any UI.
  */
 export default async function DashboardRootPage() {
@@ -16,13 +18,7 @@ export default async function DashboardRootPage() {
     redirect('/login');
   }
 
-  const role = session.user?.role || 'Attendee';
+  const role = (session.user as { role?: string })?.role ?? null;
 
-  if (role === 'Admin' || role === 'Lead') {
-    redirect('/dashboard/admin');
-  } else if (role === 'Volunteer') {
-    redirect('/dashboard/volunteer');
-  } else {
-    redirect('/dashboard/user');
-  }
+  redirect(resolveDashboardPath(role));
 }

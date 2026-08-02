@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/Badge";
-import { Card, CardBody } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/bento";
+import { FileText, MapPin, CalendarDays } from "lucide-react";
 import type { ApplicationStatus, EventType } from "@/lib/types";
 
 interface ApplicationItem {
@@ -17,6 +17,33 @@ interface ApplicationListProps {
   applications: ApplicationItem[];
 }
 
+/** Accepted applications get the lime fill; the rest read as panels. */
+const statusChrome: Record<
+  ApplicationStatus,
+  { card: string; chip: string; tone: "lime" | "panel" }
+> = {
+  accepted: {
+    card: "bg-lime text-void",
+    chip: "bg-void text-lime",
+    tone: "lime",
+  },
+  pending: {
+    card: "bg-panel text-fg border border-line",
+    chip: "bg-volt text-void",
+    tone: "panel",
+  },
+  waitlisted: {
+    card: "bg-panel text-fg border border-line",
+    chip: "bg-azure text-void",
+    tone: "panel",
+  },
+  rejected: {
+    card: "bg-panel text-fg border border-line",
+    chip: "bg-panel-alt text-fg-dim",
+    tone: "panel",
+  },
+};
+
 function formatDate(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -32,42 +59,71 @@ function statusLabel(status: ApplicationStatus): string {
 export function ApplicationList({ applications }: ApplicationListProps) {
   if (applications.length === 0) {
     return (
-      <Card>
-        <CardBody>
-          <p className="text-center text-gray-500 py-4">
-            No applications yet. Browse events to get started.
-          </p>
-        </CardBody>
-      </Card>
+      <div className="rounded-bento border border-line bg-panel p-10 text-center">
+        <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-panel-alt">
+          <FileText className="h-6 w-6 text-fg-dim" aria-hidden="true" />
+        </span>
+        <h2 className="text-lg font-bold tracking-tight">No applications yet</h2>
+        <p className="mt-1 text-sm text-fg-dim">
+          Browse the schedule and apply to sub-events to see them here.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      {applications.map((app) => (
-        <Card key={app.id} className={app.status === "accepted" ? "border-green-200 bg-green-50/30" : undefined}>
-          <CardBody className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 flex-1">
-              <h4 className="font-medium text-gray-900 truncate">
-                {app.eventName ?? "Unknown Event"}
-              </h4>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
-                {app.eventDate && <span>{app.eventDate}</span>}
-                {app.eventVenue && <span>{app.eventVenue}</span>}
+    <div className="grid gap-3 sm:grid-cols-2">
+      {applications.map((app, i) => {
+        const chrome = statusChrome[app.status] ?? statusChrome.pending;
+        const isAccepted = app.status === "accepted";
+
+        return (
+          <article
+            key={app.id}
+            className={`flex animate-tile-in flex-col justify-between rounded-bento p-5 ${chrome.card}`}
+            style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+          >
+            <div>
+              <div className="flex items-start justify-between gap-3">
+                <Eyebrow tone={chrome.tone}>
+                  {app.eventType ?? "Sub-event"}
+                </Eyebrow>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-tight ${chrome.chip}`}
+                >
+                  {statusLabel(app.status)}
+                </span>
               </div>
+
+              <h3 className="mt-2 text-lg font-bold leading-tight tracking-tight">
+                {app.eventName ?? "Unknown event"}
+              </h3>
             </div>
 
-            <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
-              <Badge variant={app.status}>
-                {statusLabel(app.status)}
-              </Badge>
-              <span className="text-xs text-gray-400">
+            <div
+              className={`mt-4 space-y-1.5 text-xs font-medium ${
+                isAccepted ? "text-void/70" : "text-fg-dim"
+              }`}
+            >
+              {app.eventDate && (
+                <p className="flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {app.eventDate}
+                </p>
+              )}
+              {app.eventVenue && (
+                <p className="flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {app.eventVenue}
+                </p>
+              )}
+              <p className={isAccepted ? "text-void/50" : "text-fg-dim/70"}>
                 Applied {formatDate(app.appliedAt)}
-              </span>
+              </p>
             </div>
-          </CardBody>
-        </Card>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

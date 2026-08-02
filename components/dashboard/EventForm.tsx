@@ -71,6 +71,15 @@ function getValidStatusTransitions(currentStatus: EventStatus): { value: string;
 
 type FieldErrors = Partial<Record<string, string>>;
 
+/** Shared field styling so the native date/time inputs match <Input>. */
+const LABEL_CLASS =
+  "mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-dim";
+const FIELD_CLASS =
+  "w-full rounded-tile border bg-panel-alt px-4 py-3 text-sm font-medium text-fg placeholder:text-fg-dim/70 focus:outline-none focus:ring-1 focus:ring-lime focus:border-lime transition-colors duration-150";
+const FIELD_ERROR_CLASS = "border-magenta focus:border-magenta focus:ring-magenta";
+const FIELD_IDLE_CLASS = "border-line";
+const ERROR_TEXT_CLASS = "mt-1.5 text-xs font-semibold text-magenta";
+
 export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const isEditMode = event !== null;
 
@@ -177,7 +186,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       <div className="w-full">
         <label
           htmlFor="description"
-          className="mb-1.5 block text-sm font-medium text-gray-700"
+          className={LABEL_CLASS}
         >
           Description
         </label>
@@ -189,16 +198,14 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           placeholder="Enter event description"
           maxLength={2000}
           rows={4}
-          className={`w-full rounded-md border px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150 ${
-            errors.description
-              ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-              : "border-gray-300"
+          className={`${FIELD_CLASS} ${
+            errors.description ? FIELD_ERROR_CLASS : FIELD_IDLE_CLASS
           }`}
           aria-invalid={errors.description ? "true" : undefined}
           aria-describedby={errors.description ? "description-error" : undefined}
         />
         {errors.description && (
-          <p id="description-error" className="mt-1.5 text-sm text-red-600">
+          <p id="description-error" className={ERROR_TEXT_CLASS}>
             {errors.description}
           </p>
         )}
@@ -209,7 +216,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         <div className="w-full">
           <label
             htmlFor="date"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
+            className={LABEL_CLASS}
           >
             Date *
           </label>
@@ -219,16 +226,14 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             name="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className={`w-full rounded-md border px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150 ${
-              errors.date
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                : "border-gray-300"
+            className={`${FIELD_CLASS} ${
+              errors.date ? FIELD_ERROR_CLASS : FIELD_IDLE_CLASS
             }`}
             aria-invalid={errors.date ? "true" : undefined}
             aria-describedby={errors.date ? "date-error" : undefined}
           />
           {errors.date && (
-            <p id="date-error" className="mt-1.5 text-sm text-red-600">
+            <p id="date-error" className={ERROR_TEXT_CLASS}>
               {errors.date}
             </p>
           )}
@@ -249,7 +254,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         <div className="w-full">
           <label
             htmlFor="startTime"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
+            className={LABEL_CLASS}
           >
             Start Time *
           </label>
@@ -259,16 +264,14 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             name="startTime"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className={`w-full rounded-md border px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150 ${
-              errors.startTime
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                : "border-gray-300"
+            className={`${FIELD_CLASS} ${
+              errors.startTime ? FIELD_ERROR_CLASS : FIELD_IDLE_CLASS
             }`}
             aria-invalid={errors.startTime ? "true" : undefined}
             aria-describedby={errors.startTime ? "startTime-error" : undefined}
           />
           {errors.startTime && (
-            <p id="startTime-error" className="mt-1.5 text-sm text-red-600">
+            <p id="startTime-error" className={ERROR_TEXT_CLASS}>
               {errors.startTime}
             </p>
           )}
@@ -277,7 +280,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         <div className="w-full">
           <label
             htmlFor="endTime"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
+            className={LABEL_CLASS}
           >
             End Time *
           </label>
@@ -287,16 +290,14 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             name="endTime"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className={`w-full rounded-md border px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150 ${
-              errors.endTime
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                : "border-gray-300"
+            className={`${FIELD_CLASS} ${
+              errors.endTime ? FIELD_ERROR_CLASS : FIELD_IDLE_CLASS
             }`}
             aria-invalid={errors.endTime ? "true" : undefined}
             aria-describedby={errors.endTime ? "endTime-error" : undefined}
           />
           {errors.endTime && (
-            <p id="endTime-error" className="mt-1.5 text-sm text-red-600">
+            <p id="endTime-error" className={ERROR_TEXT_CLASS}>
               {errors.endTime}
             </p>
           )}

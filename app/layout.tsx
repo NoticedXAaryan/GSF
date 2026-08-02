@@ -1,13 +1,8 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Inter, Anton } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import './globals.css';
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,10 +10,9 @@ const inter = Inter({
   display: 'swap',
 });
 
-const anton = Anton({
-  weight: '400',
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-anton',
+  variable: '--font-playfair',
   display: 'swap',
 });
 
@@ -34,12 +28,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable} ${anton.variable}`}>
-      <body
-        className="font-sans antialiased bg-[#050505] text-white overflow-x-hidden"
-        suppressHydrationWarning
-      >
-        <AuthProvider>{children}</AuthProvider>
+    <html
+      lang="en"
+      className={`${inter.variable} ${playfair.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

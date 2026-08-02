@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export interface InputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
-  type?: "text" | "email" | "password" | "tel" | "number";
+  type?: "text" | "email" | "password" | "tel" | "number" | "date";
   label?: string;
   error?: string;
   labelClassName?: string;
@@ -21,7 +21,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className={cn("mb-1.5 block text-sm font-medium text-gray-700", labelClassName)}
+            className={cn(
+              "mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-dim",
+              labelClassName
+            )}
           >
             {label}
           </label>
@@ -32,11 +35,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           disabled={disabled}
           className={cn(
-            "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400",
-            "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+            "w-full rounded-tile border border-line bg-panel-alt px-4 py-3 text-sm font-medium text-fg placeholder:text-fg-dim/70",
+            "focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime",
             "transition-colors duration-150",
-            disabled && "opacity-50 cursor-not-allowed",
-            error && "border-red-500 focus:ring-red-500 focus:border-red-500",
+            disabled && "cursor-not-allowed opacity-50",
+            error && "border-magenta focus:border-magenta focus:ring-magenta",
             className
           )}
           aria-invalid={error ? "true" : undefined}
@@ -46,7 +49,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={inputId ? `${inputId}-error` : undefined}
-            className={cn("mt-1.5 text-sm text-red-600", errorClassName)}
+            className={cn("mt-1.5 text-xs font-semibold text-magenta", errorClassName)}
           >
             {error}
           </p>

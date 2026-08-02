@@ -157,26 +157,22 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 
   const resultBgClass =
     scanResult?.result === "allowed"
-      ? "bg-green-50 border-green-200"
+      ? "bg-lime text-void"
       : scanResult?.result === "already_checked_in"
-        ? "bg-amber-50 border-amber-200"
+        ? "bg-volt text-void"
         : scanResult?.result === "denied"
-          ? "bg-red-50 border-red-200"
+          ? "bg-magenta text-void"
           : "";
 
-  const resultIconClass =
-    scanResult?.result === "allowed"
-      ? "text-green-600"
-      : scanResult?.result === "already_checked_in"
-        ? "text-amber-600"
-        : "text-red-600";
+  // Accent fills already carry near-black content, so the icon rides the fill.
+  const resultIconClass = "text-void";
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">QR Scanner</h3>
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+          <h3 className="text-lg font-semibold text-fg">QR Scanner</h3>
+          <span className="rounded-full bg-azure px-3 py-1 text-sm font-medium text-void">
             {checkInCount} checked in
           </span>
         </div>
@@ -203,7 +199,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
               variant="primary"
               onClick={startScanner}
               disabled={!selectedEventId}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full"
             >
               <CameraIcon className="mr-2 h-5 w-5" />
               Start Scanning
@@ -222,7 +218,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 
         {/* Error display */}
         {error && (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="text-sm font-semibold text-magenta" role="alert">
             {error}
           </p>
         )}
@@ -231,13 +227,13 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         <div
           ref={scannerContainerRef}
           id="qr-scanner-container"
-          className={`w-full overflow-hidden rounded-lg ${scanning ? "min-h-[300px]" : "hidden"}`}
+          className={`w-full overflow-hidden rounded-bento ${scanning ? "min-h-[300px]" : "hidden"}`}
         />
 
         {/* Scan result display */}
         {scanResult && (
           <div
-            className={`rounded-lg border p-4 ${resultBgClass}`}
+            className={`animate-stamp-in rounded-bento p-4 ${resultBgClass}`}
             role="status"
             aria-live="polite"
           >
@@ -255,22 +251,22 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
               <div>
                 {scanResult.result === "allowed" && (
                   <>
-                    <p className="font-semibold text-green-800">Check-in Successful</p>
-                    <p className="text-sm text-green-700">{scanResult.userName}</p>
+                    <p className="font-semibold text-void">Check-in Successful</p>
+                    <p className="text-sm text-void/80">{scanResult.userName}</p>
                   </>
                 )}
                 {scanResult.result === "already_checked_in" && (
                   <>
-                    <p className="font-semibold text-amber-800">Already Checked In</p>
-                    <p className="text-sm text-amber-700">
+                    <p className="font-semibold text-void">Already Checked In</p>
+                    <p className="text-sm text-void/80">
                       {scanResult.userName} — already checked in
                     </p>
                   </>
                 )}
                 {scanResult.result === "denied" && (
                   <>
-                    <p className="font-semibold text-red-800">Denied</p>
-                    <p className="text-sm text-red-700">{scanResult.reason}</p>
+                    <p className="font-semibold text-void">Denied</p>
+                    <p className="text-sm text-void/80">{scanResult.reason}</p>
                   </>
                 )}
               </div>
@@ -282,7 +278,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         {loading && (
           <div className="flex items-center justify-center py-2">
             <svg
-              className="h-5 w-5 animate-spin text-blue-600"
+              className="h-5 w-5 animate-spin text-lime"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -302,7 +298,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span className="ml-2 text-sm text-gray-600">Processing scan…</span>
+            <span className="ml-2 text-sm text-fg-dim">Processing scan…</span>
           </div>
         )}
       </CardBody>

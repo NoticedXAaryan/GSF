@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { eq, and, gt, count, isNotNull, sql, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { resolveDashboardPath } from '@/lib/landing/auth-routing';
 import {
   user,
   events,
@@ -15,6 +16,7 @@ import {
 import { AdminStats } from '@/components/dashboard/AdminStats';
 import { AnnouncementFeed } from '@/components/dashboard/AnnouncementFeed';
 import { AdminTaskChecklists } from './AdminTaskChecklists';
+import { PageHeader } from '@/components/dashboard/PageHeader';
 import type { AnnouncementItem } from '@/components/dashboard/AnnouncementFeed';
 
 async function getAdminData() {
@@ -152,7 +154,7 @@ export default async function AdminDashboardPage() {
 
   const role = (session.user as { role?: string })?.role || 'Attendee';
   if (role !== 'Admin' && role !== 'Lead') {
-    redirect('/dashboard/user');
+    redirect(resolveDashboardPath(role));
   }
 
   const { stats, checklistsResult, tasksResult, announcementsResult } =
@@ -190,12 +192,11 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Platform overview and management.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Platform admin"
+        title="Admin Dashboard"
+        description="Platform overview and management."
+      />
 
       {/* Stats section */}
       <AdminStats stats={stats} />
@@ -203,7 +204,7 @@ export default async function AdminDashboardPage() {
       {/* Task Checklists section */}
       {checklistsWithTasks.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-fg mb-4">
             Task Checklists
           </h2>
           <AdminTaskChecklists checklists={checklistsWithTasks} />
@@ -212,7 +213,7 @@ export default async function AdminDashboardPage() {
 
       {/* Announcements section */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-fg mb-4">
           Recent Announcements
         </h2>
         <AnnouncementFeed announcements={announcementItems} />

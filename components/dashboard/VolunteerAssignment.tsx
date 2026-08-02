@@ -85,7 +85,7 @@ export function VolunteerAssignment({
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-sm font-semibold text-gray-900">
+        <h3 className="text-sm font-semibold text-fg">
           Volunteers — {subEventName}
         </h3>
       </CardHeader>
@@ -94,7 +94,7 @@ export function VolunteerAssignment({
         {error && (
           <div
             role="alert"
-            className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="rounded-tile bg-magenta px-3 py-2 text-sm font-semibold text-void"
           >
             {error}
           </div>
@@ -127,17 +127,17 @@ export function VolunteerAssignment({
 
         {/* Assigned volunteers list */}
         {assignedVolunteers.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-fg-dim">
             No volunteers assigned to this sub-event yet.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100" aria-label={`Assigned volunteers for ${subEventName}`}>
+          <ul className="divide-y divide-line" aria-label={`Assigned volunteers for ${subEventName}`}>
             {assignedVolunteers.map((volunteer) => (
               <li
                 key={volunteer.id}
                 className="flex items-center justify-between py-2"
               >
-                <span className="text-sm text-gray-800">{volunteer.name}</span>
+                <span className="text-sm text-fg">{volunteer.name}</span>
                 <Button
                   variant="destructive"
                   size="sm"
