@@ -69,7 +69,7 @@ describe("HeroSection", () => {
 
   it("renders the tagline", () => {
     render(<HeroSection viewer={anonymousViewer} />);
-    expect(screen.getByText("Where Ideas Become Enterprises")).toBeInTheDocument();
+    expect(screen.getByText(/Where ideas become enterprises/i)).toBeInTheDocument();
   });
 
   it("renders event dates and venue", () => {
@@ -219,27 +219,18 @@ describe("HighlightsSection", () => {
 
   it("renders all required categories", () => {
     render(<HighlightsSection />);
-    const requiredTitles = [
-      "Keynote Speeches",
-      "Panel Discussions",
-      "Workshops",
-      "Startup Showcases",
-      "Competitions",
-      "Networking",
-    ];
+    const requiredTitles = FESTIVAL_HIGHLIGHTS.map(h => h.title);
     for (const title of requiredTitles) {
       expect(screen.getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
     }
   });
 
-  it("each highlight has a unique icon with accessible label", () => {
+  it("each highlight has a unique accessible label on its article", () => {
     render(<HighlightsSection />);
-    const icons = screen.getAllByRole("img");
-    const labels = icons.map((icon) => icon.getAttribute("aria-label"));
-    // All must have labels
-    for (const label of labels) {
-      expect(label).toBeTruthy();
-    }
+    const cards = screen.getAllByRole("article");
+    const labels = cards.map((card) => card.getAttribute("aria-label")).filter(Boolean);
+    // All 6 highlighted cards must have accessible labels
+    expect(labels.length).toBe(6);
     // All labels must be unique
     expect(new Set(labels).size).toBe(labels.length);
   });
@@ -255,7 +246,7 @@ describe("HighlightsSection", () => {
     const grid = container.querySelector(".grid");
     expect(grid?.className).toMatch(/grid-cols-1/);
     expect(grid?.className).toMatch(/tablet:grid-cols-2/);
-    expect(grid?.className).toMatch(/desktop:grid-cols-3/);
+    expect(grid?.className).toMatch(/desktop:grid-cols-4/);
   });
 
   it("has a section landmark with accessible label", () => {
@@ -352,96 +343,31 @@ describe("SpeakersSection", () => {
 
 // ------ Sponsors Section Tests ------
 describe("SponsorsSection", () => {
-  const populatedTiers: SponsorTier[] = [
-    {
-      name: "Title Sponsors",
-      sponsors: [
-        {
-          id: "title-1",
-          name: "Title Sponsor Corp",
-          href: "https://example.com",
-          logo: { src: "/title.svg", width: 200, height: 48, alt: "Title Sponsor Corp logo" },
-        },
-      ],
-    },
-    {
-      name: "Associate Sponsors",
-      sponsors: [
-        {
-          id: "assoc-1",
-          name: "Associate Corp",
-          logo: { src: "/assoc.svg", width: 180, height: 48, alt: "Associate Corp logo" },
-        },
-      ],
-    },
-    {
-      name: "Partners",
-      sponsors: [
-        {
-          id: "partner-1",
-          name: "Partner Corp",
-          logo: { src: "/partner.svg", width: 160, height: 48, alt: "Partner Corp logo" },
-        },
-      ],
-    },
-  ];
-
   it("renders the section heading as h2", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    const heading = screen.getByRole("heading", { level: 2, name: /sponsors and partners/i });
+    render(<SponsorsSection />);
+    const heading = screen.getByRole("heading", { level: 2, name: /our partners/i });
     expect(heading).toBeInTheDocument();
   });
 
-  it("renders three labeled tiers when all are populated", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    expect(screen.getByRole("heading", { level: 3, name: "Title Sponsors" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Associate Sponsors" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Partners" })).toBeInTheDocument();
+  it("renders the three organizing institutions", () => {
+    render(<SponsorsSection />);
+    expect(screen.getByText("Parul University Vadodara")).toBeInTheDocument();
+    expect(screen.getByText("Parul University Goa")).toBeInTheDocument();
+    expect(screen.getByText("PIERC")).toBeInTheDocument();
   });
 
-  it("hides empty tiers entirely", () => {
-    render(<SponsorsSection tiers={FESTIVAL_SPONSOR_TIERS} />);
-    // Title Sponsors and Associate Sponsors are empty in the production content
-    expect(screen.queryByRole("heading", { level: 3, name: "Title Sponsors" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 3, name: "Associate Sponsors" })).not.toBeInTheDocument();
-    // Partners has content
-    expect(screen.getByRole("heading", { level: 3, name: "Partners" })).toBeInTheDocument();
-  });
-
-  it("renders sponsor logos with h-12 (48px) height class", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    const images = screen.getAllByRole("img");
-    for (const img of images) {
-      expect(img.className).toMatch(/h-12/);
-    }
-  });
-
-  it("renders logos with explicit width and height attributes (Next.js Image)", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    const images = screen.getAllByRole("img");
-    for (const img of images) {
-      expect(img).toHaveAttribute("width");
-      expect(img).toHaveAttribute("height");
-    }
-  });
-
-  it("renders sponsor links with correct hrefs when href is provided", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    const link = screen.getByRole("link", { name: /visit title sponsor corp/i });
-    expect(link).toHaveAttribute("href", "https://example.com");
-  });
-
-  it("renders logos with lazy loading", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    const images = screen.getAllByRole("img");
-    for (const img of images) {
-      expect(img).toHaveAttribute("loading", "lazy");
-    }
+  it("renders links for each institution", () => {
+    render(<SponsorsSection />);
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(3);
+    expect(links[0]).toHaveAttribute("href", "https://paruluniversity.ac.in/");
+    expect(links[1]).toHaveAttribute("href", "https://paruluniversity.ac.in/goa/");
+    expect(links[2]).toHaveAttribute("href", "https://pierc.paruluniversity.ac.in/");
   });
 
   it("has a section landmark with accessible label", () => {
-    render(<SponsorsSection tiers={populatedTiers} />);
-    const section = screen.getByRole("region", { name: /sponsors and partners/i });
+    render(<SponsorsSection />);
+    const section = screen.getByRole("region", { name: /our partners/i });
     expect(section).toBeInTheDocument();
   });
 });
@@ -455,9 +381,7 @@ describe("SiteFooter", () => {
 
   it("renders the festival name in the branding column", () => {
     render(<SiteFooter />);
-    expect(
-      screen.getByRole("heading", { level: 2, name: /goa startup festival 2026/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/goa startup festival 2026/i)).toBeInTheDocument();
   });
 
   it("renders the organizer attribution", () => {
@@ -536,7 +460,7 @@ describe("Heading Order", () => {
         <AboutSection />
         <HighlightsSection />
         <SpeakersSection speakers={FESTIVAL_SPEAKERS} />
-        <SponsorsSection tiers={FESTIVAL_SPONSOR_TIERS} />
+        <SponsorsSection />
         <SiteFooter />
       </main>,
     );

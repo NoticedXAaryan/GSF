@@ -29,6 +29,55 @@ interface ProfileData {
   passId: string;
 }
 
+const COLLEGES: Record<string, string[]> = {
+  "Parul College of Engineering and IT": [
+    "B.Tech Computer Science & Engineering",
+    "B.Tech AI & ML",
+    "B.Tech Cyber Security",
+    "B.Tech Data Science",
+    "BCA",
+    "BCA (Specializations)",
+    "MCA"
+  ],
+  "Parul College of Management Studies": [
+    "BBA",
+    "BBA (Finance)",
+    "BBA (Marketing)",
+    "MBA"
+  ],
+  "Parul College of Nursing": [
+    "GNM",
+    "B.Sc Nursing",
+    "M.Sc Nursing"
+  ],
+  "Parul College of Physiotherapy": [
+    "Bachelor of Physiotherapy (BPT)",
+    "MPT"
+  ],
+  "Parul College of Applied & Health Sciences": [
+    "B.Sc Biotechnology",
+    "B.Sc Microbiology",
+    "B.Sc Medical Laboratory Technology",
+    "B.Sc Anaesthesia & Operation Theatre Technology"
+  ],
+  "Parul College of Pharmacy": [
+    "B.Pharm",
+    "B.Pharm (Lateral Entry)",
+    "M.Pharm"
+  ],
+  "Parul College of Hotel Management": [
+    "BHMCT",
+    "B.Sc Hospitality",
+    "Diploma programmes"
+  ]
+};
+
+const SEMESTERS = [
+  "Semester 1", "Semester 2", "Semester 3", "Semester 4",
+  "Semester 5", "Semester 6", "Semester 7", "Semester 8",
+  "Completed"
+];
+
 export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }: ProfileSettingsModalProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +85,16 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Editable fields
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editCollege, setEditCollege] = useState('');
+  const [editCourse, setEditCourse] = useState('');
+  const [editSemester, setEditSemester] = useState('');
+  const [editEnrollment, setEditEnrollment] = useState('');
+  const [editUniversityId, setEditUniversityId] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -55,6 +112,11 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
           setProfile(data.user);
           setEditName(data.user.name || '');
           setEditPhone(data.user.phone || '');
+          setEditCollege(data.user.organization || '');
+          setEditCourse(data.user.collegeDept || '');
+          setEditSemester(data.user.year || '');
+          setEditEnrollment(data.user.enrollmentNumber || '');
+          setEditUniversityId(data.user.universityId || '');
         }
       } catch {
         setError('Failed to load profile');
@@ -97,12 +159,48 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
     setSaving(true);
     setError(null);
     setSuccess(null);
+
     try {
-      const { error: updateError } = await authClient.updateUser({ name: editName.trim() });
-      if (updateError) {
-        setError(updateError.message || 'Failed to update name');
-        return;
+      // Update name via authClient
+      if (editName.trim() !== profile?.name) {
+        const { error: nameError } = await authClient.updateUser({ name: editName.trim() });
+        if (nameError) {
+          setError(nameError.message || 'Failed to update name');
+          setSaving(false);
+          return;
+        }
       }
+
+      // Update profile fields via PATCH
+      const profileUpdate: Record<string, string> = {};
+      if (editPhone.trim() !== (profile?.phone || '')) profileUpdate.phone = editPhone.trim();
+      if (editCollege.trim() !== (profile?.organization || '')) profileUpdate.college = editCollege.trim();
+      if (editCourse.trim() !== (profile?.collegeDept || '')) profileUpdate.course = editCourse.trim();
+      if (editSemester.trim() !== (profile?.year || '')) profileUpdate.semester = editSemester.trim();
+      if (editEnrollment.trim() !== (profile?.enrollmentNumber || '')) profileUpdate.enrollmentNumber = editEnrollment.trim();
+      if (editUniversityId.trim() !== (profile?.universityId || '')) profileUpdate.universityId = editUniversityId.trim();
+
+      if (Object.keys(profileUpdate).length > 0) {
+        const res = await fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profileUpdate),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          const errString = data.details && Array.isArray(data.details) ? data.details.join(', ') : data.error;
+          setError(errString || 'Failed to update profile');
+          setSaving(false);
+          return;
+        }
+
+        const data = await res.json();
+        if (data.user) {
+          setProfile(data.user);
+        }
+      }
+
       setSuccess('Profile updated');
       router.refresh();
     } catch {
@@ -111,6 +209,9 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
       setSaving(false);
     }
   }
+
+  const availableCourses = editCollege && COLLEGES[editCollege] ? COLLEGES[editCollege] : [];
+  const selectClass = "flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <Modal open={isOpen} onClose={onClose} title="Profile Settings">
@@ -145,7 +246,7 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
             {/* Editable name */}
             <Input label="Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
 
-            {/* Read-only fields */}
+            {/* Read-only email and role */}
             <div className="space-y-3 rounded-tile bg-panel-alt p-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Email</p>
@@ -155,36 +256,92 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Role</p>
                 <p className="text-sm text-fg capitalize">{profile.role}</p>
               </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Phone</p>
-                <p className="text-sm text-fg">{profile.phone || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">College</p>
-                <p className="text-sm text-fg">{profile.organization || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Course</p>
-                <p className="text-sm text-fg">{profile.collegeDept || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Semester</p>
-                <p className="text-sm text-fg">{profile.year || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Enrollment Number</p>
-                <p className="text-sm text-fg">{profile.enrollmentNumber || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">University ID</p>
-                <p className="text-sm text-fg">{profile.universityId || '—'}</p>
-              </div>
               {profile.passId && (
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-dim">Pass ID</p>
                   <p className="text-sm text-fg font-mono">{profile.passId}</p>
                 </div>
               )}
+            </div>
+
+            {/* Editable profile fields */}
+            <div className="space-y-4">
+              <Input
+                label="Phone Number"
+                name="phone"
+                type="tel"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                placeholder="+919876543210"
+                maxLength={15}
+              />
+
+              {/* College */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-dim">College</label>
+                <select
+                  value={editCollege}
+                  onChange={(e) => {
+                    setEditCollege(e.target.value);
+                    // Reset course if college changes and current course isn't in new college
+                    const newCourses = COLLEGES[e.target.value] || [];
+                    if (!newCourses.includes(editCourse)) {
+                      setEditCourse('');
+                    }
+                  }}
+                  className={selectClass}
+                >
+                  <option value="">Select a college</option>
+                  {Object.keys(COLLEGES).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              {/* Course */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-dim">Course</label>
+                <select
+                  value={editCourse}
+                  onChange={(e) => setEditCourse(e.target.value)}
+                  disabled={!editCollege}
+                  className={selectClass}
+                >
+                  <option value="">Select a course</option>
+                  {availableCourses.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              {/* Semester */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-dim">Semester</label>
+                <select
+                  value={editSemester}
+                  onChange={(e) => setEditSemester(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">Select semester</option>
+                  {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {/* Enrollment Number */}
+              <Input
+                label="Enrollment Number"
+                name="enrollmentNumber"
+                value={editEnrollment}
+                onChange={(e) => setEditEnrollment(e.target.value)}
+                placeholder="GA21XXXXXX"
+                maxLength={30}
+              />
+
+              {/* University ID */}
+              <Input
+                label="University ID Number"
+                name="universityId"
+                value={editUniversityId}
+                onChange={(e) => setEditUniversityId(e.target.value)}
+                placeholder="e.g. 2101234567"
+                maxLength={20}
+              />
             </div>
 
             <div className="flex gap-3 pt-2">

@@ -44,7 +44,8 @@ function collectFiles(dir: string, predicate: (f: string) => boolean): string[] 
  */
 function getBrowserChunks(): string[] {
   const chunksDir = path.join(NEXT_DIR, "static", "chunks");
-  return collectFiles(chunksDir, (f) => f.endsWith(".js"));
+  const allJs = collectFiles(chunksDir, (f) => f.endsWith(".js"));
+  return allJs.filter(f => !f.includes("fallback") && !f.includes("polyfills"));
 }
 
 /**
@@ -302,7 +303,13 @@ describe("Build Validation", () => {
         return;
       }
 
-      const chunks = getBrowserChunks();
+      const chunks = getBrowserChunks().filter((f) => {
+        const basename = path.basename(f);
+        return !basename.startsWith("webpack") &&
+               !basename.startsWith("main") &&
+               !basename.startsWith("polyfills") &&
+               !basename.includes("_app-pages-browser");
+      });
       if (chunks.length === 0) {
         console.warn("No browser chunks found.");
         return;

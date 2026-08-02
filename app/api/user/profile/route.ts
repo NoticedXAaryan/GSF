@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { user, clearancePasses } from '@/lib/schema';
-import { getSession, jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { updateProfileSchema } from '@/lib/validators';
+import { getSession, jsonResponse, errorResponse, parseBody } from '@/lib/api-helpers';
 
 /**
  * GET /api/user/profile
@@ -65,3 +66,61 @@ export async function GET(request: NextRequest) {
     return errorResponse('Internal server error', 500);
   }
 }
+
+/**
+ * PATCH /api/user/profile
+ * Update profile fields (phone, college, course, semester, enrollment, universityId).
+ * Allows editing after initial profile completion.
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getSession(request.headers);
+    if (!session) {
+      return errorResponse('Authentication required', 401);
+    }
+
+    const parsed = await parseBody(request, updateProfileSchema);
+    if (parsed.error) return parsed.error;
+
+    const { data } = parsed;
+    const userId = session.user.id;
+
+    // Build the update set from provided fields only
+    const updateSet: Record<string, unknown> = { updatedAt: new Date() };
+    if (data.phone !== undefined) updateSet.phone = data.phone.trim();
+    if (data.college !== undefined) updateSet.organization = data.college.trim();
+    if (data.course !== undefined) updateSet.collegeDept = data.course.trim();
+    if (data.semester !== undefined) updateSet.year = data.semester.trim();
+    if (data.enrollmentNumber !== undefined) updateSet.enrollmentNumber = data.enrollmentNumber.trim().toUpperCase();
+    if (data.universityId !== undefined) updateSet.universityId = data.universityId.trim();
+
+    if (Object.keys(updateSet).length <= 1) {
+      return errorResponse('No fields to update', 400);
+    }
+
+    const [updated] = await db
+      .update(user)
+      .set(updateSet)
+      .where(eq(user.id, userId))
+      .returning({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        organization: user.organization,
+        collegeDept: user.collegeDept,
+        year: user.year,
+        enrollmentNumber: user.enrollmentNumber,
+        universityId: user.universityId,
+        profileComplete: user.profileComplete,
+        role: user.role,
+        passId: user.passId,
+      });
+
+    return jsonResponse({ user: updated });
+  } catch (error) {
+    console.error('[PATCH /api/user/profile]', error);
+    return errorResponse('Internal server error', 500);
+  }
+}
+

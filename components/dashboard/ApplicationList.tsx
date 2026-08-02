@@ -72,58 +72,88 @@ export function ApplicationList({ applications }: ApplicationListProps) {
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {applications.map((app, i) => {
-        const chrome = statusChrome[app.status] ?? statusChrome.pending;
-        const isAccepted = app.status === "accepted";
+    <div className="space-y-4">
+      {/* Status legend */}
+      <div className="flex flex-wrap gap-3 rounded-tile border border-line bg-panel p-4">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-volt" />
+          <span className="text-xs font-medium text-fg-dim">Pending — Being reviewed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-lime" />
+          <span className="text-xs font-medium text-fg-dim">Accepted — You&apos;re in!</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-azure" />
+          <span className="text-xs font-medium text-fg-dim">Waitlisted — On the backup list</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-panel-alt border border-line" />
+          <span className="text-xs font-medium text-fg-dim">Rejected — Not selected</span>
+        </div>
+      </div>
 
-        return (
-          <article
-            key={app.id}
-            className={`flex animate-tile-in flex-col justify-between rounded-bento p-5 ${chrome.card}`}
-            style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
-          >
-            <div>
-              <div className="flex items-start justify-between gap-3">
-                <Eyebrow tone={chrome.tone}>
-                  {app.eventType ?? "Sub-event"}
-                </Eyebrow>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-tight ${chrome.chip}`}
-                >
-                  {statusLabel(app.status)}
-                </span>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {applications.map((app, i) => {
+          const chrome = statusChrome[app.status] ?? statusChrome.pending;
+          const isAccepted = app.status === "accepted";
+
+          return (
+            <article
+              key={app.id}
+              className={`flex animate-tile-in flex-col justify-between rounded-bento p-5 ${chrome.card}`}
+              style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+            >
+              <div>
+                <div className="flex items-start justify-between gap-3">
+                  <Eyebrow tone={chrome.tone}>
+                    {app.eventType ?? "Sub-event"}
+                  </Eyebrow>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-tight ${chrome.chip}`}
+                  >
+                    {statusLabel(app.status)}
+                  </span>
+                </div>
+
+                <h3 className="mt-2 text-lg font-bold leading-tight tracking-tight">
+                  {app.eventName ?? "Unknown event"}
+                </h3>
               </div>
 
-              <h3 className="mt-2 text-lg font-bold leading-tight tracking-tight">
-                {app.eventName ?? "Unknown event"}
-              </h3>
-            </div>
+              <div
+                className={`mt-4 space-y-1.5 text-xs font-medium ${
+                  isAccepted ? "text-void/70" : "text-fg-dim"
+                }`}
+              >
+                {app.eventDate && (
+                  <p className="flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {app.eventDate}
+                  </p>
+                )}
+                {app.eventVenue && (
+                  <p className="flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {app.eventVenue}
+                  </p>
+                )}
+                <p className={isAccepted ? "text-void/50" : "text-fg-dim/70"}>
+                  Applied {formatDate(app.appliedAt)}
+                </p>
 
-            <div
-              className={`mt-4 space-y-1.5 text-xs font-medium ${
-                isAccepted ? "text-void/70" : "text-fg-dim"
-              }`}
-            >
-              {app.eventDate && (
-                <p className="flex items-center gap-1.5">
-                  <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  {app.eventDate}
+                {/* Status helper text */}
+                <p className={`mt-1 text-[11px] italic ${isAccepted ? "text-void/60" : "text-fg-dim/60"}`}>
+                  {app.status === "pending" && "Your application is under review. You'll be notified once a decision is made."}
+                  {app.status === "accepted" && "Congratulations! You can attend this event. Show your QR pass at check-in."}
+                  {app.status === "waitlisted" && "You're on the backup list. You'll be notified if a spot opens up."}
+                  {app.status === "rejected" && "Unfortunately your application was not selected for this event."}
                 </p>
-              )}
-              {app.eventVenue && (
-                <p className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  {app.eventVenue}
-                </p>
-              )}
-              <p className={isAccepted ? "text-void/50" : "text-fg-dim/70"}>
-                Applied {formatDate(app.appliedAt)}
-              </p>
-            </div>
-          </article>
-        );
-      })}
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -189,18 +189,28 @@ export function DashboardShell({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSigningOut(true);
-                handleLogout();
-              }}
-              disabled={signingOut}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-primary-strong px-3 py-2 text-xs font-bold tracking-tight text-surface transition-opacity hover:opacity-90 disabled:opacity-60"
-            >
-              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-              {signingOut ? 'Signing out…' : 'Sign out'}
-            </button>
+            <div className="mt-3 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-surface-alt px-3 py-2 text-xs font-bold tracking-tight text-fg transition-opacity hover:opacity-90"
+              >
+                <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                Profile Settings
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSigningOut(true);
+                  handleLogout();
+                }}
+                disabled={signingOut}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-strong px-3 py-2 text-xs font-bold tracking-tight text-surface transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+                {signingOut ? 'Signing out…' : 'Sign out'}
+              </button>
+            </div>
           </div>
         </div>
       </aside>

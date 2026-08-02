@@ -168,7 +168,7 @@ export default async function AttendeeDashboardPage() {
           <Metric className="text-2xl">{completion}%</Metric>
         </div>
         <ProgressBar value={completion} className="mt-3" label="Festival setup progress" />
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           {steps.map((s) => (
             <span
               key={s.label}
@@ -181,6 +181,34 @@ export default async function AttendeeDashboardPage() {
               {s.label}
             </span>
           ))}
+
+          {/* Next step action */}
+          {!isProfileComplete && (
+            <Link
+              href="/dashboard/user/complete-profile"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-bold tracking-tight text-surface transition-opacity hover:opacity-90"
+            >
+              Complete Profile
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          )}
+          {isProfileComplete && !hasPass && (
+            <span className="ml-auto text-xs font-semibold text-fg-dim">
+              ↓ Register below to get your pass
+            </span>
+          )}
+          {isProfileComplete && hasPass && !hasApplied && (
+            <Link
+              href="/dashboard/user/schedule"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-bold tracking-tight text-surface transition-opacity hover:opacity-90"
+            >
+              Browse Events
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          )}
+          {completion === 100 && (
+            <span className="ml-auto text-xs font-semibold text-lime">✓ All set!</span>
+          )}
         </div>
       </BentoCard>
 

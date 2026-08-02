@@ -24,6 +24,7 @@ export function SiteFooter() {
             <div className="grid grid-cols-1 gap-8 tablet:grid-cols-3 tablet:gap-12">
               {/* Brand */}
               <div className="flex flex-col items-start">
+                <h2 className="sr-only">Goa Startup Festival 2026</h2>
                 <Link href="/" className="inline-block" aria-label="Goa Startup Festival Home">
                   <img 
                     src="/logo.png" 

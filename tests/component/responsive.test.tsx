@@ -55,22 +55,6 @@ vi.mock("lucide-react", () => {
 
 const mockUseReducedMotion = vi.fn<() => boolean | null>(() => false);
 
-vi.mock("motion/react", () => ({
-  motion: {
-    div: React.forwardRef(
-      ({ children, className, ...rest }: Record<string, unknown>, ref: React.Ref<HTMLDivElement>) =>
-        React.createElement("div", { ref, className, ...rest }, children as React.ReactNode),
-    ),
-    section: React.forwardRef(
-      ({ children, className, ...rest }: Record<string, unknown>, ref: React.Ref<HTMLElement>) =>
-        React.createElement("section", { ref, className, ...rest }, children as React.ReactNode),
-    ),
-  },
-  MotionConfig: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useReducedMotion: () => mockUseReducedMotion(),
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { HighlightsSection } from "@/components/landing/HighlightsSection";
@@ -216,10 +200,10 @@ describe("Responsive – Grid Column Breakpoints", () => {
       expect(grid?.className).toMatch(/tablet:grid-cols-2/);
     });
 
-    it("uses desktop:grid-cols-3 at 1024px+", () => {
+    it("uses desktop:grid-cols-4 at 1024px+", () => {
       const { container } = render(<HighlightsSection />);
       const grid = container.querySelector(".grid");
-      expect(grid?.className).toMatch(/desktop:grid-cols-3/);
+      expect(grid?.className).toMatch(/desktop:grid-cols-4/);
     });
   });
 
@@ -716,10 +700,10 @@ describe("Visual Regression – Responsive Class Contracts", () => {
   });
 
   describe("Desktop viewport (1024px+)", () => {
-    it("highlights grid transitions to 3 columns (desktop:grid-cols-3)", () => {
+    it("highlights grid transitions to 4 columns (desktop:grid-cols-4)", () => {
       const { container } = render(<HighlightsSection />);
       const grid = container.querySelector(".grid");
-      expect(grid?.className).toMatch(/desktop:grid-cols-3/);
+      expect(grid?.className).toMatch(/desktop:grid-cols-4/);
     });
 
     it("speakers grid transitions to 4 columns (desktop:grid-cols-4)", () => {

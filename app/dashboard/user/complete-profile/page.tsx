@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Input } from '@/components/ui/Input';
@@ -76,6 +76,30 @@ export default function CompleteProfilePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  const isEditMode = user?.profileComplete ?? false;
+
+  // Pre-populate fields from existing profile data when editing
+  useEffect(() => {
+    if (!isEditMode || profileLoaded) return;
+    const id = window.setTimeout(async () => {
+      try {
+        const res = await fetch('/api/user/profile');
+        const data = await res.json();
+        if (data.user) {
+          setPhone(data.user.phone || '');
+          setCollege(data.user.organization || '');
+          setCourse(data.user.collegeDept || '');
+          setSemester(data.user.year || '');
+          setEnrollmentNumber(data.user.enrollmentNumber || '');
+          setUniversityId(data.user.universityId || '');
+        }
+      } catch { /* non-critical */ }
+      setProfileLoaded(true);
+    }, 0);
+    return () => clearTimeout(id);
+  }, [isEditMode, profileLoaded]);
 
   if (loading) {
     return (
@@ -83,11 +107,6 @@ export default function CompleteProfilePage() {
         <p className="text-fg-dim">Loading…</p>
       </div>
     );
-  }
-
-  if (user?.profileComplete) {
-    router.replace('/dashboard/user');
-    return null;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -156,9 +175,9 @@ export default function CompleteProfilePage() {
     <div className="max-w-lg mx-auto">
       <div className="mb-6">
         <PageHeader
-          eyebrow="Account setup"
-          title="Complete Your Profile"
-          description="Fill in the details below to unlock festival registration and sub-event applications."
+          eyebrow={isEditMode ? 'Profile' : 'Account setup'}
+          title={isEditMode ? 'Edit Your Profile' : 'Complete Your Profile'}
+          description={isEditMode ? 'Update your details below.' : 'Fill in the details below to unlock festival registration and sub-event applications.'}
         />
       </div>
 
@@ -267,7 +286,7 @@ export default function CompleteProfilePage() {
             />
 
             <Button type="submit" loading={submitting} className="w-full">
-              Complete Profile
+              {isEditMode ? 'Update Profile' : 'Complete Profile'}
             </Button>
           </form>
         </CardBody>

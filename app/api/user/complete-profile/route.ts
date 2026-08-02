@@ -30,16 +30,8 @@ export async function POST(request: NextRequest) {
     const { data } = parsed;
     const userId = session.user.id;
 
-    // ── Check if profile already completed ──
-    const [existing] = await db
-      .select({ profileComplete: user.profileComplete })
-      .from(user)
-      .where(eq(user.id, userId))
-      .limit(1);
-
-    if (existing?.profileComplete) {
-      return errorResponse('Profile has already been completed', 409);
-    }
+    // Profile may already be completed — that's fine, we allow editing.
+    // The profileComplete flag stays true once set.
 
     // ── Update user record ──
     const [updatedUser] = await db

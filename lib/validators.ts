@@ -31,6 +31,29 @@ export const completeProfileSchema = z.object({
     .regex(/^\d+$/, 'University ID must contain numbers only'),
 });
 
+export const updateProfileSchema = z.object({
+  phone: z
+    .string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .regex(phoneRegex, 'Invalid phone number format')
+    .optional(),
+  college: z.string().min(1, 'College is required').max(150).optional(),
+  course: z.string().min(1, 'Course is required').max(150).optional(),
+  semester: z.string().min(1, 'Semester is required').max(50).optional(),
+  enrollmentNumber: z
+    .string()
+    .min(1, 'Enrollment number is required')
+    .max(30)
+    .regex(/^GA/i, 'Enrollment number must start with GA')
+    .optional(),
+  universityId: z
+    .string()
+    .min(1, 'University ID is required')
+    .max(20)
+    .regex(/^\d+$/, 'University ID must contain numbers only')
+    .optional(),
+});
+
 // ────────────────────────────────────────────────────────────
 // Events
 // ────────────────────────────────────────────────────────────

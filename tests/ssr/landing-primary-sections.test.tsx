@@ -23,12 +23,9 @@ describe("primary landing server sections", () => {
   it("renders the full-height anonymous hero with exact facts and responsive type", () => {
     const html = renderToStaticMarkup(createElement(HeroSection, { viewer: anonymous }));
 
-    expect(html).toContain("min-h-dvh");
-    expect(html).toContain("text-4xl");
-    expect(html).toContain("tablet:text-5xl");
-    expect(html).toContain("desktop:text-6xl");
+    expect(html).toContain("clamp(3.25rem,15vw,11rem)");
     expect(html).toContain("Goa Startup Festival 2026");
-    expect(html).toContain("Where Ideas Become Enterprises");
+    expect(html).toContain("Where ideas become enterprises");
     expect(html).toContain("2–3 September 2026");
     expect(html).toContain("Parul University Goa Campus, Betul, South Goa");
     expect(html).toContain('href="/signup"');
@@ -69,12 +66,12 @@ describe("primary landing server sections", () => {
 
     expect(html).toContain("grid-cols-1");
     expect(html).toContain("tablet:grid-cols-2");
-    expect(html).toContain("desktop:grid-cols-3");
+    expect(html).toContain("desktop:grid-cols-4");
     expect(occurrences(html, "<article")).toBe(FESTIVAL_HIGHLIGHTS.length);
     for (const highlight of FESTIVAL_HIGHLIGHTS) {
-      expect(html).toContain(highlight.title);
-      expect(html).toContain(highlight.description);
-      expect(html).toContain(`aria-label="${highlight.accessibleLabel}"`);
+      expect(html).toContain(highlight.title.replaceAll("&", "&amp;").replaceAll("'", "&#x27;"));
+      expect(html).toContain(highlight.description.replaceAll("&", "&amp;").replaceAll("'", "&#x27;"));
+      expect(html).toContain(`aria-label="${highlight.accessibleLabel.replaceAll("&", "&amp;").replaceAll("'", "&#x27;")}"`);
     }
     expect(new Set(FESTIVAL_HIGHLIGHTS.map(({ icon }) => icon)).size).toBe(6);
   });

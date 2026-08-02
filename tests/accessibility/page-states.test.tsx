@@ -11,79 +11,41 @@ import { FESTIVAL_FAQS } from "@/lib/landing/content";
 // ─── Mock useReducedMotion from motion/react ───────────────────────────
 const mockUseReducedMotion = vi.fn<() => boolean | null>(() => false);
 
-vi.mock("motion/react", () => ({
-  motion: {
-    div: React.forwardRef(
-      (
-        {
-          children,
-          initial,
-          whileInView,
-          viewport,
-          transition,
-          className,
-          ...rest
-        }: {
-          children?: React.ReactNode;
-          initial?: Record<string, unknown>;
-          whileInView?: Record<string, unknown>;
-          viewport?: Record<string, unknown>;
-          transition?: Record<string, unknown>;
-          className?: string;
-        } & Record<string, unknown>,
-        ref: React.Ref<HTMLDivElement>,
-      ) => (
-        <div
-          ref={ref}
-          className={className}
-          data-initial={JSON.stringify(initial)}
-          data-animate={JSON.stringify(whileInView)}
-          data-viewport={JSON.stringify(viewport)}
-          data-transition={JSON.stringify(transition)}
-          {...rest}
-        >
-          {children}
-        </div>
-      ),
+vi.mock("motion/react", () => {
+  const React = require("react");
+  return {
+    motion: new Proxy(
+      {},
+      {
+        get: (_, tag) =>
+          React.forwardRef(
+            ({ children, className, initial, whileInView, viewport, transition, ...rest }: Record<string, unknown>, ref: React.Ref<HTMLElement>) =>
+              React.createElement(
+                tag as string,
+                {
+                  ref,
+                  className,
+                  "data-initial": JSON.stringify(initial),
+                  "data-animate": JSON.stringify(whileInView),
+                  "data-viewport": JSON.stringify(viewport),
+                  "data-transition": JSON.stringify(transition),
+                  ...rest
+                },
+                children as React.ReactNode
+              )
+          )
+      }
     ),
-    section: React.forwardRef(
-      (
-        {
-          children,
-          initial,
-          whileInView,
-          viewport,
-          transition,
-          className,
-          ...rest
-        }: {
-          children?: React.ReactNode;
-          initial?: Record<string, unknown>;
-          whileInView?: Record<string, unknown>;
-          viewport?: Record<string, unknown>;
-          transition?: Record<string, unknown>;
-          className?: string;
-        } & Record<string, unknown>,
-        ref: React.Ref<HTMLElement>,
-      ) => (
-        <section
-          ref={ref}
-          className={className}
-          data-initial={JSON.stringify(initial)}
-          data-animate={JSON.stringify(whileInView)}
-          data-viewport={JSON.stringify(viewport)}
-          data-transition={JSON.stringify(transition)}
-          {...rest}
-        >
-          {children}
-        </section>
-      ),
-    ),
-  },
-  MotionConfig: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useReducedMotion: () => mockUseReducedMotion(),
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+    MotionConfig: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useReducedMotion: () => mockUseReducedMotion(),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useMotionValue: vi.fn(() => ({ set: vi.fn(), get: vi.fn() })),
+    useSpring: vi.fn(() => ({ set: vi.fn(), get: vi.fn() })),
+    useMotionTemplate: vi.fn((strings, ...values) => {
+      return strings.reduce((acc: string, str: string, i: number) => acc + str + (values[i] ?? ""), "");
+    }),
+  };
+});
 
 vi.mock("next/image", () => ({
   __esModule: true,

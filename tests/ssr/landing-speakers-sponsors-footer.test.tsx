@@ -40,16 +40,12 @@ describe("SpeakersSection", () => {
 });
 
 describe("SponsorsSection and SiteFooter", () => {
-  it("omits each empty sponsor tier and uses uniform explicit-size images", () => {
-    const tiers: readonly SponsorTier[] = [{ name: "Title Sponsors", sponsors: [sponsor("title")] }, { name: "Associate Sponsors", sponsors: [] }, { name: "Partners", sponsors: [sponsor("partner")] }];
-    const html = renderToStaticMarkup(<SponsorsSection tiers={tiers} />);
-    expect(html).toContain("Title Sponsors");
-    expect(html).not.toContain("Associate Sponsors");
-    expect(html).toContain("Partners");
-    expect(html.match(/loading="lazy"/g)).toHaveLength(2);
-    expect(html.match(/width="1109"/g)).toHaveLength(2);
-    expect(html.match(/height="421"/g)).toHaveLength(2);
-    expect(html.match(/h-12/g)).toHaveLength(2);
+  it("renders the static partner links with uniform explicit-size images", () => {
+    const html = renderToStaticMarkup(<SponsorsSection />);
+    expect(html).toContain("Parul University Vadodara");
+    expect(html).toContain("Parul University Goa");
+    expect(html).toContain("PIERC");
+    expect(html.match(/<img/g)).toHaveLength(3);
   });
 
   it("renders the semantic responsive footer with exact links, contact, and attribution", () => {

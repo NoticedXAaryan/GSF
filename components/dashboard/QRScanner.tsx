@@ -21,6 +21,12 @@ interface ScanResultData {
   reason?: string;
 }
 
+interface ScanHistoryEntry {
+  result: ScanResultData;
+  timestamp: number;
+  eventName: string;
+}
+
 export function QRScanner({ events, onScanResult }: QRScannerProps) {
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
@@ -28,12 +34,20 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
   const [checkInCount, setCheckInCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [scanHistory, setScanHistory] = useState<ScanHistoryEntry[]>([]);
+  const [paused, setPaused] = useState(false);
 
   const scannerRef = useRef<unknown>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopScanner = useCallback(async () => {
     try {
+      if (pauseTimerRef.current) {
+        clearTimeout(pauseTimerRef.current);
+        pauseTimerRef.current = null;
+      }
       if (scannerRef.current) {
         const scanner = scannerRef.current as { stop: () => Promise<void>; clear: () => void };
         await scanner.stop();
@@ -44,6 +58,8 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
       // Scanner may already be stopped
     }
     setScanning(false);
+    setCameraLoading(false);
+    setPaused(false);
   }, []);
 
   // Cleanup scanner on unmount
@@ -55,8 +71,8 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 
   const handleScanResult = useCallback(
     async (decodedText: string) => {
-      // Prevent multiple scans while processing
-      if (loading) return;
+      // Prevent multiple scans while processing or paused
+      if (loading || paused) return;
       setLoading(true);
       setError(null);
 
@@ -77,16 +93,26 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
           };
           setScanResult(data);
           onScanResult?.(data);
+          addToHistory(data);
           return;
         }
 
         const data = (await response.json()) as ScanResultData;
         setScanResult(data);
         onScanResult?.(data);
+        addToHistory(data);
 
         if (data.result === "allowed") {
           setCheckInCount((prev) => prev + 1);
         }
+
+        // Auto-pause for 3 seconds so the volunteer can see the result
+        setPaused(true);
+        pauseTimerRef.current = setTimeout(() => {
+          setPaused(false);
+          setScanResult(null);
+          pauseTimerRef.current = null;
+        }, 3000);
       } catch {
         const data: ScanResultData = {
           result: "denied",
@@ -94,12 +120,21 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         };
         setScanResult(data);
         onScanResult?.(data);
+        addToHistory(data);
       } finally {
         setLoading(false);
       }
     },
-    [selectedEventId, loading, onScanResult]
+    [selectedEventId, loading, paused, onScanResult]
   );
+
+  function addToHistory(result: ScanResultData) {
+    const eventName = events.find((e) => e.id === selectedEventId)?.name ?? "Unknown";
+    setScanHistory((prev) => [
+      { result, timestamp: Date.now(), eventName },
+      ...prev.slice(0, 4), // Keep last 5
+    ]);
+  }
 
   const startScanner = useCallback(async () => {
     if (!selectedEventId) {
@@ -109,10 +144,14 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 
     setError(null);
     setScanResult(null);
+    setCameraLoading(true);
 
     try {
       // Dynamically import html5-qrcode to avoid SSR issues
       const { Html5Qrcode } = await import("html5-qrcode");
+
+      // Wait a tick for React to render the container without "hidden"
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const containerId = "qr-scanner-container";
 
@@ -138,7 +177,9 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
       );
 
       setScanning(true);
+      setCameraLoading(false);
     } catch (err) {
+      setCameraLoading(false);
       const message =
         err instanceof Error ? err.message : "Failed to access camera";
       setError(message);
@@ -166,6 +207,31 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 
   // Accent fills already carry near-black content, so the icon rides the fill.
   const resultIconClass = "text-void";
+
+  // ── Empty state: no events assigned ──
+  if (events.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-fg">QR Scanner</h3>
+        </CardHeader>
+        <CardBody>
+          <div className="flex flex-col items-center gap-4 py-8 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-panel-alt">
+              <ScanLineIcon className="h-8 w-8 text-fg-dim" />
+            </span>
+            <div>
+              <h4 className="text-base font-bold text-fg">No Events Assigned</h4>
+              <p className="mt-1 max-w-sm text-sm text-fg-dim">
+                You are not assigned to any check-in desks yet. Contact an admin
+                to get assigned to a sub-event before you can start scanning.
+              </p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -198,11 +264,20 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
             <Button
               variant="primary"
               onClick={startScanner}
-              disabled={!selectedEventId}
+              disabled={!selectedEventId || cameraLoading}
               className="w-full"
             >
-              <CameraIcon className="mr-2 h-5 w-5" />
-              Start Scanning
+              {cameraLoading ? (
+                <>
+                  <SpinnerIcon className="mr-2 h-5 w-5 animate-spin" />
+                  Starting Camera…
+                </>
+              ) : (
+                <>
+                  <CameraIcon className="mr-2 h-5 w-5" />
+                  Start Scanning
+                </>
+              )}
             </Button>
           ) : (
             <Button
@@ -223,12 +298,29 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
           </p>
         )}
 
+        {/* Camera loading state */}
+        {cameraLoading && (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-bento border border-line bg-panel-alt py-12">
+            <SpinnerIcon className="h-8 w-8 animate-spin text-lime" />
+            <p className="text-sm font-medium text-fg-dim">
+              Initializing camera…
+            </p>
+          </div>
+        )}
+
         {/* Camera preview */}
         <div
           ref={scannerContainerRef}
           id="qr-scanner-container"
-          className={`w-full overflow-hidden rounded-bento ${scanning ? "min-h-[300px]" : "hidden"}`}
+          className={`w-full overflow-hidden rounded-bento ${scanning || cameraLoading ? "min-h-[300px]" : "hidden"}`}
         />
+
+        {/* Paused indicator */}
+        {paused && scanning && (
+          <p className="text-center text-xs font-medium text-fg-dim animate-neon-pulse">
+            Resuming scanner in a moment…
+          </p>
+        )}
 
         {/* Scan result display */}
         {scanResult && (
@@ -277,28 +369,55 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         {/* Loading indicator */}
         {loading && (
           <div className="flex items-center justify-center py-2">
-            <svg
-              className="h-5 w-5 animate-spin text-lime"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
+            <SpinnerIcon className="h-5 w-5 animate-spin text-lime" />
             <span className="ml-2 text-sm text-fg-dim">Processing scan…</span>
+          </div>
+        )}
+
+        {/* Scan history */}
+        {scanHistory.length > 0 && (
+          <div className="space-y-2 pt-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-fg-dim">
+              Recent Scans
+            </h4>
+            <div className="space-y-1.5">
+              {scanHistory.map((entry, i) => {
+                const bg =
+                  entry.result.result === "allowed"
+                    ? "border-lime/30 bg-lime/10"
+                    : entry.result.result === "already_checked_in"
+                      ? "border-volt/30 bg-volt/10"
+                      : "border-magenta/30 bg-magenta/10";
+                return (
+                  <div
+                    key={`${entry.timestamp}-${i}`}
+                    className={`flex items-center justify-between rounded-tile border px-3 py-2 ${bg}`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${
+                          entry.result.result === "allowed"
+                            ? "bg-lime"
+                            : entry.result.result === "already_checked_in"
+                              ? "bg-volt"
+                              : "bg-magenta"
+                        }`}
+                      />
+                      <span className="truncate text-xs font-medium text-fg">
+                        {entry.result.userName || entry.result.reason || entry.result.result}
+                      </span>
+                    </div>
+                    <span className="shrink-0 text-[10px] text-fg-dim">
+                      {new Date(entry.timestamp).toLocaleTimeString("en-IN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </CardBody>
@@ -307,6 +426,26 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 }
 
 // ── Icon Components ──
+
+function ScanLineIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+    </svg>
+  );
+}
 
 function CameraIcon({ className }: { className?: string }) {
   return (
@@ -346,6 +485,32 @@ function StopIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
+      />
+    </svg>
+  );
+}
+
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
       />
     </svg>
   );

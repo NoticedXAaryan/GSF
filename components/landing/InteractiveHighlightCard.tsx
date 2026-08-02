@@ -24,6 +24,7 @@ export function InteractiveHighlightCard({ highlight, className = "", delay = 0 
       className={`group relative overflow-hidden rounded-[2rem] border p-8 shadow-sm transition-all hover:shadow-xl ${
         hasImage ? "border-transparent bg-ink" : "bg-surface border-surface-alt"
       } ${className}`}
+      aria-label={highlight.accessibleLabel}
     >
       {/* Background Image (if present) */}
       {hasImage && (
@@ -48,13 +49,13 @@ export function InteractiveHighlightCard({ highlight, className = "", delay = 0 
       
       {/* Massive decorative icon in the background */}
       <div className={`absolute -right-8 -bottom-8 transition-transform duration-500 group-hover:scale-110 pointer-events-none z-0 ${hasImage ? 'opacity-[0.1] text-white' : 'opacity-[0.03] text-ink group-hover:opacity-[0.06]'}`}>
-        <Icon size={200} />
+        <Icon size={200} aria-hidden="true" />
       </div>
 
       <div className="relative z-10 flex h-full flex-col">
         <div className="mb-auto">
           <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-canvas text-secondary shadow-sm ring-1 ring-surface-alt transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-md group-hover:bg-secondary group-hover:text-white">
-            <Icon size={24} strokeWidth={2.5} />
+            <Icon size={24} strokeWidth={2.5} role="img" aria-label={highlight.title} />
           </span>
         </div>
         

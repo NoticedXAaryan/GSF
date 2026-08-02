@@ -72,7 +72,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
       onMouseMove={handleMouseMove}
       id="hero"
       aria-labelledby="hero-title"
-      className="relative overflow-hidden bg-canvas"
+      className="relative overflow-hidden bg-canvas min-h-screen"
     >
       {/* Reactive Spotlight */}
       <motion.div
@@ -88,7 +88,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
           <motion.h1
             variants={item}
             id="hero-title"
-            className="mt-8 font-black uppercase leading-[0.84] tracking-[-0.03em]"
+            className="mt-8 font-black uppercase leading-[0.84] tracking-[-0.03em] text-4xl tablet:text-5xl desktop:text-6xl"
           >
             {/* Accessible label, since the visible glyphs are image-filled */}
             <span className="sr-only">Goa Startup Festival 2026</span>
@@ -169,7 +169,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <MapPin aria-hidden="true" className="text-accent-strong" size={18} />
-                  PU Goa Campus, Betul, South Goa
+                  Parul University Goa Campus, Betul, South Goa
                 </span>
               </motion.div>
 
@@ -179,7 +179,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
               >
                 <Link
                   href={cta.href}
-                  className="group inline-flex min-h-touch items-center justify-center gap-2 rounded-pill bg-primary px-8 py-4 text-base font-extrabold text-surface transition-colors hover:bg-primary-strong"
+                  className="group inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-pill bg-primary px-8 py-4 text-base font-extrabold text-surface transition-colors hover:bg-primary-strong"
                 >
                   {cta.label}
                   <ArrowRight

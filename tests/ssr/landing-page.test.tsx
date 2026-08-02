@@ -33,25 +33,7 @@ vi.mock("next/image", () => ({
     React.createElement("img", props),
 }));
 
-// Mock motion/react for SSR (no browser IntersectionObserver)
-vi.mock("motion/react", () => ({
-  motion: {
-    div: React.forwardRef(
-      (
-        { children, className, ...rest }: { children?: React.ReactNode; className?: string } & Record<string, unknown>,
-        ref: React.Ref<HTMLDivElement>,
-      ) => React.createElement("div", { ref, className }, children),
-    ),
-    section: React.forwardRef(
-      (
-        { children, className, ...rest }: { children?: React.ReactNode; className?: string } & Record<string, unknown>,
-        ref: React.Ref<HTMLElement>,
-      ) => React.createElement("section", { ref, className }, children),
-    ),
-  },
-  MotionConfig: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
-  useReducedMotion: () => false,
-}));
+
 
 // Mock auth module
 const mockGetSession = vi.fn();
@@ -171,7 +153,7 @@ describe("Landing page SSR integration", () => {
       const html = await renderPage();
 
       expect(html).toContain("Goa Startup Festival 2026");
-      expect(html).toContain("Where Ideas Become Enterprises");
+      expect(html).toContain("Where ideas become enterprises");
     });
 
     it("renders Day 1 schedule events in server HTML", async () => {
@@ -272,7 +254,7 @@ describe("Landing page SSR integration", () => {
       expect(html).toContain("FAQ");
       // Hero
       expect(html).toContain("Goa Startup Festival 2026");
-      expect(html).toContain("Where Ideas Become Enterprises");
+      expect(html).toContain("Where ideas become enterprises");
       // Footer
       expect(html).toContain("<footer");
       expect(html).toContain("Jointly organized by PIERC, Parul University &amp; PU Goa");

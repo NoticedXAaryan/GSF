@@ -76,7 +76,7 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
               : "border border-surface-alt bg-surface text-ink-muted hover:text-ink hover:border-accent"
           }`}
         >
-          Day 1 (Sept 2nd)
+          Day 1 (2 Sept)
         </button>
         <button
           type="button"
@@ -88,14 +88,14 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
               : "border border-surface-alt bg-surface text-ink-muted hover:text-ink hover:border-accent"
           }`}
         >
-          Day 2 (Sept 3rd)
+          Day 2 (3 Sept)
         </button>
       </div>
 
       {/* Timeline */}
       {dayEvents.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-alt py-20">
-          <p className="text-lg text-ink-muted">No events scheduled for this day yet.</p>
+          <p className="text-lg text-ink-muted">No events scheduled for this day.</p>
         </div>
       ) : (
         <div className="relative mt-16 pb-12">
@@ -186,6 +186,12 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
                                   )}
                                 </p>
                               )}
+                              {event.coordinatorName && (
+                                <p className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-ink-muted/70" aria-hidden="true" />
+                                  <span>{event.coordinatorName}</span>
+                                </p>
+                              )}
                             </div>
                           </article>
                         );
@@ -204,7 +210,7 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
                 onClick={() => handleDaySwitch(2)}
                 className="group inline-flex items-center gap-2 rounded-full bg-surface-alt px-6 py-3 text-sm font-bold text-ink transition-colors hover:bg-accent hover:text-[#0a0a0b]"
               >
-                View Day 2 Schedule
+                View Next Day's Schedule
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
             ) : (
@@ -213,7 +219,7 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
                 className="group inline-flex items-center gap-2 rounded-full bg-surface-alt px-6 py-3 text-sm font-bold text-ink transition-colors hover:bg-accent hover:text-[#0a0a0b]"
               >
                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Back to Day 1 Schedule
+                Back to Previous Day
               </button>
             )}
           </div>

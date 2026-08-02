@@ -15,9 +15,9 @@ export interface SiteHeaderProps {
 
 const NAV_LINKS = [
   { label: "About", href: "#about" },
-  { label: "Events", href: "#featured-events" },
+  { label: "Highlights", href: "#highlights" },
   { label: "Schedule", href: "#schedule" },
-  { label: "Partners", href: "#partners-title" },
+  { label: "Speakers", href: "#speakers" },
   { label: "FAQ", href: "#faq" },
 ] as const;
 
@@ -64,7 +64,7 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
         }}
         transition={{ type: "spring", stiffness: 380, damping: 32 }}
         className={cn(
-          "pointer-events-auto border",
+          "pointer-events-auto border sticky top-0 h-20 z-50",
           isScrolled && "backdrop-blur-xl backdrop-saturate-150"
         )}
       >

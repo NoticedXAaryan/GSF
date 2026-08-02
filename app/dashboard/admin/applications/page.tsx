@@ -64,6 +64,13 @@ export default function AdminApplicationQueuePage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  // Batch selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  
+  // Event Filter
+  const [selectedEventFilter, setSelectedEventFilter] = useState<string>('all');
+
   // Review modal
   const [reviewing, setReviewing] = useState<QueueItem | null>(null);
   const [decision, setDecision] = useState('accepted');
@@ -73,6 +80,7 @@ export default function AdminApplicationQueuePage() {
   const fetchQueue = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setSelectedIds(new Set());
     try {
       const res = await fetch(`/api/admin/applications?status=${status}`);
       if (!res.ok) {
@@ -139,6 +147,61 @@ export default function AdminApplicationQueuePage() {
     if (ok) setReviewing(null);
   }
 
+  // ── Batch operations ──
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === pendingItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pendingItems.map((a) => a.id)));
+    }
+  }
+
+  const filteredItems = items.filter(a => selectedEventFilter === 'all' || a.eventName === selectedEventFilter);
+  const pendingItems = filteredItems.filter((a) => a.status === 'pending');
+  const hasPendingSelection = selectedIds.size > 0 && status === 'pending';
+
+  async function bulkDecide(newStatus: string) {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    setError(null);
+
+    const selected = items.filter((a) => selectedIds.has(a.id));
+    let successCount = 0;
+
+    for (const app of selected) {
+      try {
+        const res = await fetch(`/api/events/${app.subEventId}/applications`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ applicationId: app.id, status: newStatus, notes: '' }),
+        });
+        if (res.ok) {
+          successCount++;
+        }
+      } catch {
+        // continue with remaining
+      }
+    }
+
+    // Refresh the list after bulk operation
+    if (successCount > 0) {
+      await fetchQueue();
+    }
+
+    setBulkBusy(false);
+    setSelectedIds(new Set());
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -152,28 +215,44 @@ export default function AdminApplicationQueuePage() {
         }
       />
 
-      {/* Status tabs */}
-      <div className="flex flex-wrap gap-2">
-        {STATUS_TABS.map((tab) => {
-          const active = status === tab.value;
-          const n = tab.value === 'all' ? undefined : counts[tab.value];
-          return (
-            <button
-              key={tab.value}
-              onClick={() => setStatus(tab.value)}
-              className={`rounded-full px-4 py-2 text-xs font-bold tracking-tight transition-colors ${
-                active ? 'bg-primary text-surface' : 'bg-panel-alt text-fg-dim hover:text-fg'
-              }`}
-            >
-              {tab.label}
-              {n !== undefined && n > 0 && (
-                <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-70'}>
-                  {n}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      {/* Status tabs and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div className="flex flex-wrap gap-2">
+          {STATUS_TABS.map((tab) => {
+            const active = status === tab.value;
+            const n = tab.value === 'all' ? undefined : counts[tab.value];
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setStatus(tab.value)}
+                className={`rounded-full px-4 py-2 text-xs font-bold tracking-tight transition-colors ${
+                  active ? 'bg-primary text-surface' : 'bg-panel-alt text-fg-dim hover:text-fg'
+                }`}
+              >
+                {tab.label}
+                {n !== undefined && n > 0 && (
+                  <span className={active ? 'ml-1.5 opacity-80' : 'ml-1.5 opacity-70'}>
+                    {n}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Event Filter */}
+        <div className="w-full sm:w-auto">
+          <select
+            value={selectedEventFilter}
+            onChange={(e) => setSelectedEventFilter(e.target.value)}
+            className="flex h-10 w-full sm:w-64 rounded-full border border-line bg-panel px-4 py-2 text-xs font-medium text-fg ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime"
+          >
+            <option value="all">All Events</option>
+            {Array.from(new Set(items.map(a => a.eventName).filter(Boolean))).map(eventName => (
+              <option key={eventName!} value={eventName!}>{eventName}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {error && (
@@ -183,11 +262,50 @@ export default function AdminApplicationQueuePage() {
         </div>
       )}
 
+      {/* Bulk actions bar */}
+      {status === 'pending' && pendingItems.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-tile border border-line bg-panel-alt px-4 py-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selectedIds.size === pendingItems.length && pendingItems.length > 0}
+              onChange={toggleSelectAll}
+              className="h-4 w-4 rounded border-line accent-lime"
+            />
+            <span className="text-xs font-semibold text-fg-dim">
+              {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
+            </span>
+          </label>
+
+          {hasPendingSelection && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => bulkDecide('accepted')}
+                loading={bulkBusy}
+                disabled={bulkBusy}
+              >
+                Accept Selected ({selectedIds.size})
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => bulkDecide('rejected')}
+                loading={bulkBusy}
+                disabled={bulkBusy}
+              >
+                Reject Selected ({selectedIds.size})
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-fg-dim">Loading applications…</p>
         </div>
-      ) : items.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <Card>
           <CardBody>
             <p className="py-8 text-center text-fg-dim">
@@ -199,10 +317,20 @@ export default function AdminApplicationQueuePage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {items.map((app) => (
+          {filteredItems.map((app) => (
             <Card key={app.id} className="animate-tile-in">
               <CardBody>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  {/* Selection checkbox for pending items */}
+                  {app.status === 'pending' && status === 'pending' && (
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(app.id)}
+                      onChange={() => toggleSelect(app.id)}
+                      className="h-4 w-4 shrink-0 rounded border-line accent-lime self-start mt-1"
+                    />
+                  )}
+
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-semibold text-fg">{app.userName}</h3>

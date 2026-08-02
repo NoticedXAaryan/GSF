@@ -48,7 +48,7 @@ export function SpeakersSection({ speakers }: SpeakersSectionProps) {
                 <div className="p-4 tablet:p-6">
                   <h3 className="truncate text-xl font-bold text-ink" title={name.truncated ? speaker.fullName : undefined}>{name.text}</h3>
                   <p className="mt-2 truncate font-semibold text-accent-strong" title={title.truncated ? speaker.title : undefined}>{title.text}</p>
-                  <p className="mt-1 truncate text-ink-muted" title={organization.truncated ? speaker.organization : undefined}>{organization.text}</p>
+                  <p className="mt-1 truncate text-ink-muted" aria-label={organization.truncated ? speaker.organization : undefined} title={organization.truncated ? speaker.organization : undefined}>{organization.text}</p>
                 </div>
               </article>
             );
