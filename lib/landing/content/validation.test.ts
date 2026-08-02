@@ -20,12 +20,12 @@ const words = (count: number) => Array.from({ length: count }, (_, i) => `word${
 
 function validContent(): LandingContent {
   const highlightTitles = [
-    "Keynote Speeches",
-    "Panel Discussions",
-    "Workshops",
-    "Startup Showcases",
-    "Competitions",
-    "Networking",
+    "Signature Talks",
+    "Startup Idea Competition",
+    "Fireside Chat with Investors & Industry",
+    "Startup Expo",
+    "Startup Masterclass",
+    "Startup Ecosystem Connect",
   ];
   const icons = [IconA, IconB, IconC, IconD, IconE, IconF];
 

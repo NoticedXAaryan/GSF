@@ -12,12 +12,12 @@ export const REQUIRED_STATISTICS = [
 export type FestivalStat = (typeof REQUIRED_STATISTICS)[number];
 
 export const REQUIRED_HIGHLIGHTS = [
-  "Keynote Speeches",
-  "Panel Discussions",
-  "Workshops",
-  "Startup Showcases",
-  "Competitions",
-  "Networking",
+  "Signature Talks",
+  "Startup Idea Competition",
+  "Fireside Chat with Investors & Industry",
+  "Startup Expo",
+  "Startup Masterclass",
+  "Startup Ecosystem Connect",
 ] as const;
 export type RequiredHighlightTitle = (typeof REQUIRED_HIGHLIGHTS)[number];
 

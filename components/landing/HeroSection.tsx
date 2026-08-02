@@ -188,12 +188,21 @@ export function HeroSection({ viewer }: HeroSectionProps) {
                     className="transition-transform group-hover:translate-x-1"
                   />
                 </Link>
-                <a
-                  href="#schedule"
-                  className="inline-flex min-h-touch items-center justify-center rounded-pill border border-surface-alt bg-surface px-8 py-4 text-base font-bold text-ink transition-colors hover:border-ink/20 hover:bg-surface-alt shadow-sm"
-                >
-                  Explore Schedule
-                </a>
+                <div className="flex gap-3">
+                  <a
+                    href="#schedule"
+                    className="inline-flex min-h-touch items-center justify-center rounded-pill border border-surface-alt bg-surface px-8 py-4 text-base font-bold text-ink transition-colors hover:border-ink/20 hover:bg-surface-alt shadow-sm flex-1 tablet:flex-auto"
+                  >
+                    Explore Schedule
+                  </a>
+                  <a
+                    href="/brochure.pdf"
+                    download
+                    className="inline-flex min-h-touch items-center justify-center rounded-pill border border-surface-alt bg-surface px-8 py-4 text-base font-bold text-ink transition-colors hover:border-ink/20 hover:bg-surface-alt shadow-sm flex-1 tablet:flex-auto"
+                  >
+                    Download Brochure
+                  </a>
+                </div>
               </motion.div>
             </div>
           </div>

@@ -17,7 +17,7 @@ export const FESTIVAL_ORGANIZERS = [
   {
     name: "PU Goa",
     description:
-      "PU Goa is Parul University's campus in Betul, South Goa, and the festival's host venue. The campus connects local aspirations with the university's wider academic and entrepreneurial ecosystem, creating an accessible meeting place for students, founders, mentors, and industry leaders.",
+      "Established in 2025, PU Goa is Parul University's campus in Betul, South Goa, and the festival's host venue. The campus connects local aspirations with the university's wider academic and entrepreneurial ecosystem, creating an accessible meeting place for students, founders, mentors, and industry leaders.",
   },
 ] as const satisfies readonly Organizer[];
 
