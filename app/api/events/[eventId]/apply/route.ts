@@ -70,9 +70,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return errorResponse('Event is not accepting applications', 400);
     }
 
-    // ── Check for duplicate application ──
+    // ── Parse request body for application notes ──
+    const body = await request.json().catch(() => ({}));
+    const notes = typeof body.notes === 'string' ? body.notes.trim() : '';
+
+    if (!notes) {
+      return errorResponse('Please provide a reason for applying', 400);
+    }
+
+    // ── Check for existing application ──
     const [existing] = await db
-      .select({ id: applications.id })
+      .select({ 
+        id: applications.id, 
+        status: applications.status, 
+        rejectionCount: applications.rejectionCount 
+      })
       .from(applications)
       .where(
         and(
@@ -83,7 +95,32 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .limit(1);
 
     if (existing) {
-      return errorResponse('Duplicate application', 409);
+      if (existing.status === 'rejected') {
+        const rejectionCount = existing.rejectionCount ?? 0;
+        if (rejectionCount >= 2) {
+          return errorResponse('You have reached the maximum number of application attempts for this event.', 400);
+        }
+        
+        // Allowed to re-apply, update existing application
+        const isShortlisted = event.type === 'shortlisted';
+        const newStatus = isShortlisted ? 'pending' : 'accepted';
+        
+        const [updatedApplication] = await db
+          .update(applications)
+          .set({
+            status: newStatus,
+            notes,
+            appliedAt: Date.now(),
+            decidedBy: null,
+            decidedAt: null
+          })
+          .where(eq(applications.id, existing.id))
+          .returning();
+          
+        return jsonResponse(updatedApplication, 200);
+      } else {
+        return errorResponse('You have already applied for this event.', 409);
+      }
     }
 
     // ── Check capacity ──
@@ -116,6 +153,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
             userName: session.user.name,
             userEmail: session.user.email,
             status: 'accepted',
+            notes,
             appliedAt,
           })
           .returning();
@@ -142,6 +180,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           userName: session.user.name,
           userEmail: session.user.email,
           status: 'pending',
+          notes,
           appliedAt,
         })
         .returning();

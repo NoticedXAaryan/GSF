@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Ticket, CheckCircle2, ScanLine } from 'lucide-react';
 import { Eyebrow, Chip } from '@/components/ui/bento';
+import { checkRecentScan } from '@/app/dashboard/actions/check-scan';
 
 interface PassData {
   passId: string;
@@ -68,6 +69,28 @@ export function PassCardInteractive({ pass, userName, userRole }: PassCardIntera
       clearTimers();
     };
   }, [runScanSequence, clearTimers]);
+
+  useEffect(() => {
+    let intervalId: number | undefined;
+
+    // Only poll when the pass exists and is in the idle (ready) state
+    if (pass && phase === 'idle') {
+      intervalId = window.setInterval(async () => {
+        try {
+          const wasScanned = await checkRecentScan(pass.passId);
+          if (wasScanned) {
+            window.dispatchEvent(new Event('pass-scanned'));
+          }
+        } catch (err) {
+          // Silently ignore polling errors
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [pass, phase]);
 
   if (!pass) {
     return (

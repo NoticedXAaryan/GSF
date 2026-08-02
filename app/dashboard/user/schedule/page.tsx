@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { CalendarDays, Clock, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/dashboard/PageHeader';
+import { Modal } from '@/components/ui/Modal';
 
 interface ScheduleEvent {
   id: string;
@@ -48,6 +49,11 @@ export default function UserSchedulePage() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [applyingId, setApplyingId] = useState<string | null>(null);
   const [applyResult, setApplyResult] = useState<{ id: string; message: string; success: boolean } | null>(null);
+  
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [applyEventId, setApplyEventId] = useState<string | null>(null);
+  const [applyNotes, setApplyNotes] = useState('');
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchEvents() {
@@ -65,22 +71,39 @@ export default function UserSchedulePage() {
     fetchEvents();
   }, []);
 
-  async function handleApply(eventId: string) {
-    setApplyingId(eventId);
+  function openApplyModal(eventId: string) {
+    setApplyEventId(eventId);
+    setApplyNotes('');
+    setApplyError(null);
     setApplyResult(null);
+    setApplyModalOpen(true);
+  }
+
+  async function submitApplication() {
+    if (!applyEventId) return;
+    if (!applyNotes.trim()) {
+      setApplyError('Please provide a reason for applying.');
+      return;
+    }
+    
+    setApplyError(null);
+    setApplyingId(applyEventId);
+    
     try {
-      const res = await fetch(`/api/events/${eventId}/apply`, {
+      const res = await fetch(`/api/events/${applyEventId}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: applyNotes.trim() }),
       });
       const data = await res.json();
       if (res.ok) {
-        setApplyResult({ id: eventId, message: 'Applied successfully!', success: true });
+        setApplyResult({ id: applyEventId, message: 'Applied successfully!', success: true });
+        setApplyModalOpen(false);
       } else {
-        setApplyResult({ id: eventId, message: data.error || 'Failed to apply', success: false });
+        setApplyError(data.error || 'Failed to apply');
       }
     } catch {
-      setApplyResult({ id: eventId, message: 'Network error', success: false });
+      setApplyError('Network error');
     } finally {
       setApplyingId(null);
     }
@@ -225,7 +248,7 @@ export default function UserSchedulePage() {
                   <Button
                     size="sm"
                     className="w-full"
-                    onClick={() => handleApply(event.id)}
+                    onClick={() => openApplyModal(event.id)}
                     loading={applyingId === event.id}
                     disabled={applyingId === event.id}
                   >
@@ -247,6 +270,38 @@ export default function UserSchedulePage() {
           ))}
         </div>
       )}
+
+      {/* Application Modal */}
+      <Modal open={applyModalOpen} onClose={() => setApplyModalOpen(false)} title="Event Application">
+        <div className="space-y-4 py-4">
+          <p className="text-sm text-fg-dim">
+            This event has limited capacity. Please briefly explain why you want to attend.
+          </p>
+          <div className="space-y-2">
+            <label htmlFor="notes" className="text-sm font-medium text-fg">
+              Why do you want to apply? *
+            </label>
+            <textarea
+              id="notes"
+              value={applyNotes}
+              onChange={(e) => setApplyNotes(e.target.value)}
+              className="flex min-h-[100px] w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder="e.g. I am very interested in learning more about..."
+            />
+            {applyError && (
+              <p className="text-xs font-medium text-red-500">{applyError}</p>
+            )}
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="secondary" onClick={() => setApplyModalOpen(false)} disabled={applyingId !== null}>
+              Cancel
+            </Button>
+            <Button onClick={submitApplication} loading={applyingId !== null} disabled={applyingId !== null}>
+              Submit Application
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

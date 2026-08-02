@@ -46,56 +46,67 @@ export default async function AttendeeDashboardPage() {
 
   const userId = session.user.id;
 
-  const [userProfile] = await db
-    .select({
-      id: user.id,
-      name: user.name,
-      role: user.role,
-      profileComplete: user.profileComplete,
-    })
-    .from(user)
-    .where(eq(user.id, userId))
-    .limit(1);
+  const [
+    userProfileResult,
+    passResult,
+    userApplications,
+    publishedEventsResult,
+    volunteerDesks,
+  ] = await Promise.all([
+    db
+      .select({
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        profileComplete: user.profileComplete,
+      })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1),
+      
+    db
+      .select({ passId: clearancePasses.passId })
+      .from(clearancePasses)
+      .where(eq(clearancePasses.uid, userId))
+      .limit(1),
+      
+    db
+      .select({
+        status: applications.status,
+        subEventId: applications.subEventId,
+        eventName: events.name,
+        eventDate: events.date,
+      })
+      .from(applications)
+      .leftJoin(events, eq(applications.subEventId, events.id))
+      .where(eq(applications.uid, userId))
+      .orderBy(desc(applications.appliedAt)),
+      
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(events)
+      .where(eq(events.status, 'published')),
+      
+    db
+      .select({ subEventId: desks.subEventId })
+      .from(desks)
+      .where(sql`${userId} = ANY(${desks.assignedVolunteerUids})`),
+  ]);
 
+  const userProfile = userProfileResult[0];
   if (!userProfile) redirect('/login');
 
-  const [pass] = await db
-    .select({ passId: clearancePasses.passId })
-    .from(clearancePasses)
-    .where(eq(clearancePasses.uid, userId))
-    .limit(1);
-
-  const userApplications = await db
-    .select({
-      status: applications.status,
-      subEventId: applications.subEventId,
-      eventName: events.name,
-      eventDate: events.date,
-    })
-    .from(applications)
-    .leftJoin(events, eq(applications.subEventId, events.id))
-    .where(eq(applications.uid, userId))
-    .orderBy(desc(applications.appliedAt));
+  const pass = passResult[0];
+  const publishedEvents = publishedEventsResult[0]?.count ?? 0;
 
   const totalApplications = userApplications.length;
   const acceptedApplications = userApplications.filter((a) => a.status === 'accepted').length;
   const pendingApplications = userApplications.filter((a) => a.status === 'pending').length;
 
-  // Published events available to browse
-  const [{ count: publishedEvents } = { count: 0 }] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(events)
-    .where(eq(events.status, 'published'));
-
   // Announcements targeted at this viewer
   const acceptedEventIds = userApplications
     .filter((a) => a.status === 'accepted')
     .map((a) => a.subEventId);
-
-  const volunteerDesks = await db
-    .select({ subEventId: desks.subEventId })
-    .from(desks)
-    .where(sql`${userId} = ANY(${desks.assignedVolunteerUids})`);
 
   const allEventIds = [
     ...new Set([...acceptedEventIds, ...volunteerDesks.map((d) => d.subEventId)]),

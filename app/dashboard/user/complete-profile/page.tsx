@@ -8,12 +8,69 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 
+const COLLEGES = {
+  "Parul College of Engineering and IT": [
+    "B.Tech Computer Science & Engineering",
+    "B.Tech AI & ML",
+    "B.Tech Cyber Security",
+    "B.Tech Data Science",
+    "BCA",
+    "BCA (Specializations)",
+    "MCA"
+  ],
+  "Parul College of Management Studies": [
+    "BBA",
+    "BBA (Finance)",
+    "BBA (Marketing)",
+    "MBA"
+  ],
+  "Parul College of Nursing": [
+    "GNM",
+    "B.Sc Nursing",
+    "M.Sc Nursing"
+  ],
+  "Parul College of Physiotherapy": [
+    "Bachelor of Physiotherapy (BPT)",
+    "MPT"
+  ],
+  "Parul College of Applied & Health Sciences": [
+    "B.Sc Biotechnology",
+    "B.Sc Microbiology",
+    "B.Sc Medical Laboratory Technology",
+    "B.Sc Anaesthesia & Operation Theatre Technology"
+  ],
+  "Parul College of Pharmacy": [
+    "B.Pharm",
+    "B.Pharm (Lateral Entry)",
+    "M.Pharm"
+  ],
+  "Parul College of Hotel Management": [
+    "BHMCT",
+    "B.Sc Hospitality",
+    "Diploma programmes"
+  ]
+};
+
+const SEMESTERS = [
+  "Semester 1",
+  "Semester 2",
+  "Semester 3",
+  "Semester 4",
+  "Semester 5",
+  "Semester 6",
+  "Semester 7",
+  "Semester 8",
+  "Completed"
+];
+
 export default function CompleteProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   const [phone, setPhone] = useState('');
-  const [collegeDept, setCollegeDept] = useState('');
+  const [college, setCollege] = useState('');
+  const [course, setCourse] = useState('');
+  const [semester, setSemester] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -42,6 +99,10 @@ export default function CompleteProfilePage() {
     if (!trimmedPhone || trimmedPhone.length < 10) {
       errors.phone = 'Phone number must be at least 10 digits';
     }
+    if (!college) errors.college = 'Please select a college';
+    if (!course) errors.course = 'Please select a course';
+    if (!semester) errors.semester = 'Please select your semester';
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -55,7 +116,9 @@ export default function CompleteProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone: trimmedPhone,
-          collegeDept: collegeDept.trim(),
+          college: college.trim(),
+          course: course.trim(),
+          semester: semester.trim(),
         }),
       });
 
@@ -125,15 +188,51 @@ export default function CompleteProfilePage() {
               maxLength={15}
             />
 
-            {/* College/Department */}
-            <Input
-              label="College / Department"
-              name="collegeDept"
-              value={collegeDept}
-              onChange={(e) => setCollegeDept(e.target.value)}
-              placeholder="e.g., Computer Science & Engineering"
-              maxLength={100}
-            />
+            {/* College */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-fg">College *</label>
+              <select
+                value={college}
+                onChange={(e) => {
+                  setCollege(e.target.value);
+                  setCourse(''); // Reset course when college changes
+                }}
+                className="flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select a college</option>
+                {Object.keys(COLLEGES).map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {fieldErrors.college && <p className="text-[13px] font-medium text-red-500">{fieldErrors.college}</p>}
+            </div>
+
+            {/* Course */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-fg">Course *</label>
+              <select
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
+                disabled={!college}
+                className="flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select a course</option>
+                {college && COLLEGES[college as keyof typeof COLLEGES].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {fieldErrors.course && <p className="text-[13px] font-medium text-red-500">{fieldErrors.course}</p>}
+            </div>
+
+            {/* Semester */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-fg">Semester *</label>
+              <select
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                className="flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select semester</option>
+                {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              {fieldErrors.semester && <p className="text-[13px] font-medium text-red-500">{fieldErrors.semester}</p>}
+            </div>
 
             <Button type="submit" loading={submitting} className="w-full">
               Complete Profile

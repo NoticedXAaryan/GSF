@@ -103,7 +103,10 @@ export function TabsSection() {
             >
               <div className="p-8 lg:p-12 flex flex-col justify-center">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6">
-                  <activeRegion.icon size={24} />
+                  {(() => {
+                    const ActiveIcon = activeRegion.icon;
+                    return <ActiveIcon size={24} />;
+                  })()}
                 </div>
                 <h3 className="text-3xl font-bold mb-4">{activeRegion.title}</h3>
                 <p className="text-lg text-ink-muted leading-relaxed">

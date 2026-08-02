@@ -25,19 +25,16 @@ interface RevealProps {
  * - Fade-in + translate-y (max 24px), 300-600ms, ease-out
  * - One-time animation: never re-triggers after first reveal
  * - When prefers-reduced-motion is active: renders final state immediately (no transition)
- * - When IntersectionObserver is unavailable: renders final state immediately
- *   (motion's viewport prop gracefully degrades)
  */
 export function Reveal({ children, className, as = "div" }: RevealProps) {
   const shouldReduceMotion = useReducedMotion();
 
-  // When reduced motion is active OR IntersectionObserver is unavailable,
-  // render in the final visible state immediately with no animation
-  const reducedMotion = shouldReduceMotion ?? !supportsIntersectionObserver();
+  // If prefers-reduced-motion is true, we skip the animation
+  const reducedMotion = shouldReduceMotion === true;
 
   const projection = projectAnimation(DEFAULT_REVEAL_ANIMATION, reducedMotion);
 
-  const MotionComponent = motion[as];
+  const MotionComponent = motion[as as keyof typeof motion] as any;
 
   // Spread initial/animate as plain objects with opacity and y for motion compatibility
   const initial = { opacity: projection.initial.opacity, y: projection.initial.y };
@@ -56,16 +53,5 @@ export function Reveal({ children, className, as = "div" }: RevealProps) {
     >
       {children}
     </MotionComponent>
-  );
-}
-
-/**
- * Check whether IntersectionObserver is available in the current environment.
- * Returns false during SSR or in browsers that don't support it.
- */
-function supportsIntersectionObserver(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.IntersectionObserver !== "undefined"
   );
 }

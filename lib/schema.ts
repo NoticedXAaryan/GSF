@@ -172,6 +172,7 @@ export const applications = pgTable(
     checkedInBy: text('checked_in_by'),
     deskId: text('desk_id'),
     appliedAt: bigint('applied_at', { mode: 'number' }).notNull(),
+    rejectionCount: integer('rejection_count').default(0),
   },
   (table) => [
     uniqueIndex('idx_applications_uid_event').on(table.uid, table.subEventId),

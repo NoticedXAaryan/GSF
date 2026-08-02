@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
       .update(user)
       .set({
         phone: data.phone.trim(),
-        collegeDept: data.collegeDept?.trim() || '',
+        organization: data.college.trim(),
+        collegeDept: data.course.trim(),
+        year: data.semester.trim(),
         profileComplete: true,
         updatedAt: new Date(),
       })
@@ -59,7 +61,9 @@ export async function POST(request: NextRequest) {
         name: updatedUser.name,
         email: updatedUser.email,
         phone: updatedUser.phone,
+        organization: updatedUser.organization,
         collegeDept: updatedUser.collegeDept,
+        year: updatedUser.year,
         profileComplete: updatedUser.profileComplete,
       },
     });

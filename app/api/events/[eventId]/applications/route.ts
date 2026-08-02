@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { applications, events } from '@/lib/schema';
 import { sendApplicationStatusUpdate } from '@/lib/email';
@@ -103,6 +103,7 @@ export async function PUT(request: NextRequest, _context: RouteContext) {
         userEmail: applications.userEmail,
         userName: applications.userName,
         subEventId: applications.subEventId,
+        status: applications.status,
       })
       .from(applications)
       .where(eq(applications.id, applicationId))
@@ -112,6 +113,8 @@ export async function PUT(request: NextRequest, _context: RouteContext) {
       return errorResponse('Application not found', 404);
     }
 
+    const isNewlyRejected = status === 'rejected' && existing.status !== 'rejected';
+
     const [updated] = await db
       .update(applications)
       .set({
@@ -119,6 +122,7 @@ export async function PUT(request: NextRequest, _context: RouteContext) {
         notes,
         decidedBy: session.user.id,
         decidedAt: Date.now(),
+        ...(isNewlyRejected ? { rejectionCount: sql`${applications.rejectionCount} + 1` } : {})
       })
       .where(eq(applications.id, applicationId))
       .returning();
