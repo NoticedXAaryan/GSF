@@ -50,13 +50,35 @@ function timeToMinutes(time: string): number {
 /** Group events by start time for the timeline view */
 function getTimeSlots(events: ScheduleEvent[]): { time: string; events: ScheduleEvent[] }[] {
   const grouped = new Map<string, ScheduleEvent[]>();
-  const sorted = [...events].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+  const sorted = [...events].sort((a, b) => {
+    // Sort by day first, then by start time
+    if (a.day !== b.day) return a.day - b.day;
+    return timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
+  });
   for (const event of sorted) {
-    const key = event.startTime;
+    const key = `${event.day}:${event.startTime}`;
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(event);
   }
-  return Array.from(grouped.entries()).map(([time, evts]) => ({ time, events: evts }));
+  return Array.from(grouped.entries()).map(([key, evts]) => {
+    const time = key.split(':').slice(1).join(':');
+    return { time, day: evts[0].day, events: evts };
+  });
+}
+
+/** Group time slots by day for rendering day headers */
+function groupSlotsByDay(slots: { time: string; day: number; events: ScheduleEvent[] }[]): { day: number; date: string; slots: { time: string; events: ScheduleEvent[] }[] }[] {
+  const dayMap = new Map<number, { date: string; slots: { time: string; events: ScheduleEvent[] }[] }>();
+  for (const slot of slots) {
+    if (!dayMap.has(slot.day)) {
+      const dateStr = slot.events[0]?.date || '';
+      dayMap.set(slot.day, { date: dateStr, slots: [] });
+    }
+    dayMap.get(slot.day)!.slots.push({ time: slot.time, events: slot.events });
+  }
+  return Array.from(dayMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([day, data]) => ({ day, ...data }));
 }
 
 export default function UserSchedulePage() {
@@ -145,6 +167,7 @@ export default function UserSchedulePage() {
   const days = [...new Set(events.map((e) => e.day))].sort((a, b) => a - b);
   const filteredEvents = selectedDay !== null ? events.filter((e) => e.day === selectedDay) : events;
   const timeSlots = getTimeSlots(filteredEvents);
+  const dayGroups = groupSlotsByDay(timeSlots as { time: string; day: number; events: ScheduleEvent[] }[]);
 
   if (loading) {
     return (
@@ -207,26 +230,36 @@ export default function UserSchedulePage() {
         </div>
       ) : viewMode === 'timeline' ? (
         /* ──── TIMELINE VIEW ──── */
-        <div className="space-y-0">
-          {timeSlots.map((slot, slotIdx) => (
-            <div key={slot.time} className="relative flex gap-4">
-              {/* Time column */}
-              <div className="flex flex-col items-center w-20 shrink-0 pt-1">
-                <span className="text-sm font-bold text-fg whitespace-nowrap">{formatTime(slot.time)}</span>
-                <span className="text-[10px] text-fg-dim">{slot.events.length} event{slot.events.length > 1 ? 's' : ''}</span>
+        <div className="space-y-6">
+          {dayGroups.map((dayGroup) => (
+            <div key={dayGroup.day}>
+              {/* Day Header */}
+              <div className="sticky top-16 z-10 mb-4 flex items-center gap-3 rounded-bento bg-lime px-5 py-3 text-void lg:top-0">
+                <span className="text-lg font-bold tracking-tight">Day {dayGroup.day}</span>
+                {dayGroup.date && <span className="text-sm font-medium text-void/70">— {dayGroup.date}</span>}
+                <span className="ml-auto text-xs font-bold text-void/60">{dayGroup.slots.reduce((a, s) => a + s.events.length, 0)} events</span>
               </div>
-              {/* Connector */}
-              <div className="flex flex-col items-center shrink-0">
-                <div className="h-3 w-3 rounded-full bg-lime border-2 border-panel mt-1.5" />
-                {slotIdx < timeSlots.length - 1 && <div className="w-0.5 flex-1 bg-line min-h-[40px]" />}
-              </div>
-              {/* Events */}
-              <div className="flex-1 pb-6">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {slot.events.map((event) => (
-                    <TimelineCard key={event.id} event={event} appliedEventIds={appliedEventIds} applyingId={applyingId} applyResult={applyResult} onApply={openApplyModal} />
-                  ))}
-                </div>
+              {/* Time slots for this day */}
+              <div className="space-y-0">
+                {dayGroup.slots.map((slot, slotIdx) => (
+                  <div key={`${dayGroup.day}-${slot.time}`} className="relative flex gap-2 sm:gap-4">
+                    <div className="flex flex-col items-center w-14 sm:w-20 shrink-0 pt-1">
+                      <span className="text-xs sm:text-sm font-bold text-fg whitespace-nowrap">{formatTime(slot.time)}</span>
+                      <span className="text-[9px] sm:text-[10px] text-fg-dim">{slot.events.length} event{slot.events.length > 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className="h-3 w-3 rounded-full bg-lime border-2 border-panel mt-1.5" />
+                      {slotIdx < dayGroup.slots.length - 1 && <div className="w-0.5 flex-1 bg-line min-h-[40px]" />}
+                    </div>
+                    <div className="flex-1 pb-6 min-w-0">
+                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                        {slot.events.map((event) => (
+                          <TimelineCard key={event.id} event={event} appliedEventIds={appliedEventIds} applyingId={applyingId} applyResult={applyResult} onApply={openApplyModal} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

@@ -71,6 +71,8 @@ export default function CompleteProfilePage() {
   const [college, setCollege] = useState('');
   const [course, setCourse] = useState('');
   const [semester, setSemester] = useState('');
+  const [enrollmentNumber, setEnrollmentNumber] = useState('');
+  const [universityId, setUniversityId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -102,6 +104,12 @@ export default function CompleteProfilePage() {
     if (!college) errors.college = 'Please select a college';
     if (!course) errors.course = 'Please select a course';
     if (!semester) errors.semester = 'Please select your semester';
+    if (!enrollmentNumber.trim() || !/^GA/i.test(enrollmentNumber.trim())) {
+      errors.enrollmentNumber = 'Enrollment number is required and must start with GA';
+    }
+    if (!universityId.trim() || !/^\d+$/.test(universityId.trim())) {
+      errors.universityId = 'University ID is required and must be numbers only';
+    }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -119,6 +127,8 @@ export default function CompleteProfilePage() {
           college: college.trim(),
           course: course.trim(),
           semester: semester.trim(),
+          enrollmentNumber: enrollmentNumber.trim().toUpperCase(),
+          universityId: universityId.trim(),
         }),
       });
 
@@ -233,6 +243,28 @@ export default function CompleteProfilePage() {
               </select>
               {fieldErrors.semester && <p className="text-[13px] font-medium text-red-500">{fieldErrors.semester}</p>}
             </div>
+
+            {/* Enrollment Number */}
+            <Input
+              label="Enrollment Number *"
+              name="enrollmentNumber"
+              value={enrollmentNumber}
+              onChange={(e) => setEnrollmentNumber(e.target.value)}
+              placeholder="GA21XXXXXX"
+              error={fieldErrors.enrollmentNumber}
+              maxLength={30}
+            />
+
+            {/* University ID */}
+            <Input
+              label="University ID Number *"
+              name="universityId"
+              value={universityId}
+              onChange={(e) => setUniversityId(e.target.value)}
+              placeholder="e.g. 2101234567"
+              error={fieldErrors.universityId}
+              maxLength={20}
+            />
 
             <Button type="submit" loading={submitting} className="w-full">
               Complete Profile

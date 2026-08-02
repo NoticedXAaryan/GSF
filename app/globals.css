@@ -53,8 +53,6 @@
   --radius-bento: 1.5rem;
   --radius-tile: 1.125rem;
 
-  --background-image-hero: var(--gradient-hero);
-
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
   --spacing-3: 0.75rem;
@@ -95,10 +93,6 @@
 
 :root {
   color-scheme: light;
-  /* Dynamic dark background for the hero */
-  --gradient-hero: radial-gradient(circle at 20% 30%, rgba(216, 31, 38, 0.35) 0%, transparent 50%),
-                   radial-gradient(circle at 80% 70%, rgba(247, 192, 46, 0.25) 0%, transparent 50%),
-                   #08080a;
   --anchor-offset: var(--spacing-anchor);
   --container-max: var(--container-site);
   --container-gutter: var(--spacing-4);

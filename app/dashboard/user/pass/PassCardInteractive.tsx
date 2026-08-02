@@ -233,15 +233,7 @@ export function PassCardInteractive({ pass, userName, userRole }: PassCardIntera
         </div>
       </div>
 
-      {/* Demo trigger — lets attendees preview the scan animation */}
-      <button
-        type="button"
-        onClick={() => window.dispatchEvent(new Event('pass-scanned'))}
-        disabled={phase !== 'idle'}
-        className="mt-4 w-full rounded-full border border-line bg-panel px-4 py-3 text-xs font-bold tracking-tight text-fg-dim transition-colors hover:text-fg disabled:opacity-50"
-      >
-        {phase === 'idle' ? 'Preview scan animation' : 'Scanning…'}
-      </button>
+      {/* Demo trigger removed — animation triggers automatically on real scan */}
     </div>
   );
 }

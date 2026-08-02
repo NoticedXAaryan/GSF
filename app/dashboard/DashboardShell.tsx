@@ -44,8 +44,10 @@ function getNavLinks(role: string): NavLink[] {
       { label: 'Users', short: 'Users', href: '/dashboard/admin/users', icon: <Users className={ICON} /> },
       { label: 'Events', short: 'Events', href: '/dashboard/admin/events', icon: <Calendar className={ICON} /> },
       { label: 'Volunteers', short: 'Vols', href: '/dashboard/admin/volunteers', icon: <UserCheck className={ICON} /> },
+      { label: 'Scanner', short: 'Scan', href: '/dashboard/admin/scanner', icon: <ScanLine className={ICON} /> },
       { label: 'Announcements', short: 'News', href: '/dashboard/admin/announcements', icon: <Megaphone className={ICON} /> },
       { label: 'Tasks', short: 'Tasks', href: '/dashboard/admin/tasks', icon: <ClipboardList className={ICON} /> },
+      { label: 'My Pass', short: 'Pass', href: '/dashboard/admin/pass', icon: <Ticket className={ICON} /> },
     ];
   }
 
@@ -225,10 +227,10 @@ export function DashboardShell({
 
       {/* ---------- Mobile floating dock ---------- */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4 lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-2 pb-4 lg:hidden"
         aria-label="Dashboard"
       >
-        <div className="flex max-w-full items-center gap-1 rounded-full border border-line bg-panel/95 p-1.5 shadow-lg backdrop-blur-xl">
+        <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-line bg-panel/95 p-1.5 shadow-lg backdrop-blur-xl hide-scrollbar">
           {navLinks.map((link) => {
             const active = isLinkActive(pathname, link);
             return (
@@ -238,7 +240,7 @@ export function DashboardShell({
                 aria-current={active ? 'page' : undefined}
                 aria-label={link.label}
                 className={cn(
-                  'flex min-h-[44px] items-center justify-center gap-1.5 rounded-full transition-all duration-200',
+                  'flex shrink-0 min-h-[44px] items-center justify-center gap-1.5 rounded-full transition-all duration-200',
                   active
                     ? 'bg-primary px-3.5 text-surface'
                     : 'w-11 text-fg-dim hover:text-fg'
@@ -246,7 +248,7 @@ export function DashboardShell({
               >
                 {link.icon}
                 {active && (
-                  <span className="text-xs font-bold tracking-tight">{link.short}</span>
+                  <span className="text-xs font-bold tracking-tight whitespace-nowrap">{link.short}</span>
                 )}
               </Link>
             );

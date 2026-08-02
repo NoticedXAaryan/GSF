@@ -78,6 +78,8 @@ export const user = pgTable('user', {
   organization: text('organization').default(''),
   passId: text('pass_id').default(''),
   profileComplete: boolean('profile_complete').default(false),
+  enrollmentNumber: text('enrollment_number').default(''),
+  universityId: text('university_id').default(''),
 });
 
 export const session = pgTable('session', {

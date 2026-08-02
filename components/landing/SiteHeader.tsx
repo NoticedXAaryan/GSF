@@ -15,9 +15,9 @@ export interface SiteHeaderProps {
 
 const NAV_LINKS = [
   { label: "About", href: "#about" },
-  { label: "Highlights", href: "#highlights" },
+  { label: "Events", href: "#featured-events" },
   { label: "Schedule", href: "#schedule" },
-  { label: "Speakers", href: "#speakers" },
+  { label: "Partners", href: "#partners-title" },
   { label: "FAQ", href: "#faq" },
 ] as const;
 
@@ -51,14 +51,13 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
           width: isScrolled ? "min(95%, 65rem)" : "100%",
           y: isHidden ? -100 : (isScrolled ? 16 : 0),
           borderRadius: isScrolled ? "999px" : "0px",
-          backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.95)" : "rgba(255, 255, 255, 1)",
-          boxShadow: isScrolled ? "0 20px 40px -10px rgba(0,0,0,0.2)" : "0 1px 2px rgba(0,0,0,0.05)",
+          backgroundColor: isScrolled ? "rgba(8, 8, 10, 0.95)" : "rgba(8, 8, 10, 0.8)",
+          boxShadow: isScrolled ? "0 20px 40px -10px rgba(0,0,0,0.5)" : "none",
         }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
           "pointer-events-auto border border-transparent backdrop-blur-xl transition-colors overflow-hidden",
-          isScrolled ? "border-surface-alt" : "border-b-surface-alt",
-          "dark:bg-panel dark:border-line"
+          isScrolled ? "border-white/10" : "border-b-white/10"
         )}
       >
         {/* Brand hairline echoing the logo's scarlet field */}
@@ -95,14 +94,14 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "group relative font-bold transition-colors hover:text-primary",
-                  isScrolled ? "text-xs text-ink py-1" : "text-sm text-ink-muted py-2"
+                  "group relative font-bold transition-colors hover:text-accent",
+                  isScrolled ? "text-xs text-white/80 py-1" : "text-sm text-white/60 py-2"
                 )}
               >
                 {link.label}
                 <span
                   aria-hidden="true"
-                  className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100"
+                  className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100"
                 />
               </a>
             ))}

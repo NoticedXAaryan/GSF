@@ -37,7 +37,7 @@ export function FaqAccordion({ items }: FaqAccordionProps) {
   );
 
   return (
-    <div className="divide-y divide-surface-alt">
+    <div className="divide-y divide-white/10">
       {items.map((item) => (
         <FaqEntry
           key={item.id}
@@ -71,7 +71,7 @@ function FaqEntry({ item, isOpen, onToggle, reduceMotion }: FaqEntryProps) {
           aria-expanded={isOpen}
           aria-controls={panelId}
           onClick={() => onToggle(item.id)}
-          className="flex w-full items-center justify-between gap-4 py-2 text-left font-serif text-lg font-semibold text-ink transition-colors hover:text-primary"
+          className="flex w-full items-center justify-between gap-4 py-2 text-left font-serif text-lg font-semibold text-white transition-colors hover:text-accent"
         >
           <span>{item.question}</span>
           <ChevronIcon isOpen={isOpen} reduceMotion={reduceMotion} />
@@ -95,11 +95,11 @@ function FaqEntry({ item, isOpen, onToggle, reduceMotion }: FaqEntryProps) {
       >
         {reduceMotion ? (
           isOpen ? (
-            <div className="pt-2 pb-2 text-ink-muted">{item.answer}</div>
+            <div className="pt-2 pb-2 text-white/60">{item.answer}</div>
           ) : null
         ) : (
           <div className="min-h-0">
-            <div className="pt-2 pb-2 text-ink-muted">{item.answer}</div>
+            <div className="pt-2 pb-2 text-white/60">{item.answer}</div>
           </div>
         )}
       </div>
@@ -121,7 +121,7 @@ function ChevronIcon({
       height="20"
       viewBox="0 0 20 20"
       fill="none"
-      className="shrink-0 text-ink-muted"
+      className="shrink-0 text-white/60"
       style={{
         transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
         transition: reduceMotion ? "none" : "transform 300ms ease-out",

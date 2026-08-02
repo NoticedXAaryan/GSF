@@ -26,8 +26,12 @@ export async function GET(request: NextRequest) {
         role: user.role,
         phone: user.phone,
         collegeDept: user.collegeDept,
+        year: user.year,
+        organization: user.organization,
         profileComplete: user.profileComplete,
         passId: user.passId,
+        enrollmentNumber: user.enrollmentNumber,
+        universityId: user.universityId,
       })
       .from(user)
       .where(eq(user.id, userId))

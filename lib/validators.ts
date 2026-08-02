@@ -19,6 +19,16 @@ export const completeProfileSchema = z.object({
   college: z.string().min(1, 'College is required').max(150),
   course: z.string().min(1, 'Course is required').max(150),
   semester: z.string().min(1, 'Semester is required').max(50),
+  enrollmentNumber: z
+    .string()
+    .min(1, 'Enrollment number is required')
+    .max(30)
+    .regex(/^GA/i, 'Enrollment number must start with GA'),
+  universityId: z
+    .string()
+    .min(1, 'University ID is required')
+    .max(20)
+    .regex(/^\d+$/, 'University ID must contain numbers only'),
 });
 
 // ────────────────────────────────────────────────────────────

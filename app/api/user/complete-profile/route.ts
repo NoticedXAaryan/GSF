@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
         organization: data.college.trim(),
         collegeDept: data.course.trim(),
         year: data.semester.trim(),
+        enrollmentNumber: data.enrollmentNumber.trim().toUpperCase(),
+        universityId: data.universityId.trim(),
         profileComplete: true,
         updatedAt: new Date(),
       })
