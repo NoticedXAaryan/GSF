@@ -1,12 +1,32 @@
 import Link from "next/link";
 import { CalendarDays, MapPin, ArrowRight, Sparkles } from "lucide-react";
-
+import { motion } from "motion/react";
 import type { Viewer } from "@/lib/landing/auth-routing";
 import { FESTIVAL_STATISTICS } from "@/lib/landing/content";
 
 interface HeroSectionProps {
   viewer: Viewer;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring", stiffness: 300, damping: 24 }
+  },
+};
 
 export function HeroSection({ viewer }: HeroSectionProps) {
   const cta = viewer.authenticated
@@ -19,86 +39,110 @@ export function HeroSection({ viewer }: HeroSectionProps) {
       aria-labelledby="hero-title"
       className="relative flex min-h-screen min-h-dvh items-center overflow-hidden bg-hero section-padding"
     >
-      <div className="site-container relative z-10 flex flex-col items-center text-center">
+      {/* Animated noise overlay for organic texture */}
+      <div className="absolute inset-0 z-0 bg-noise opacity-30 mix-blend-overlay pointer-events-none" />
+
+      {/* Decorative Orbs */}
+      <div className="absolute top-1/4 left-1/4 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 translate-x-1/3 translate-y-1/3 rounded-full bg-accent/10 blur-[120px] pointer-events-none" />
+
+      <motion.div 
+        className="site-container relative z-10 flex flex-col items-center text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Eyebrow */}
-        <p className="inline-flex items-center gap-2 rounded-pill border border-surface/25 bg-surface/10 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-surface">
+        <motion.p 
+          variants={itemVariants}
+          className="inline-flex items-center gap-2 rounded-pill glass-panel px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-surface/90 shadow-lg"
+        >
           <Sparkles aria-hidden="true" className="text-accent" size={16} />
           PIERC · Parul University · PU Goa
-        </p>
+        </motion.p>
 
         {/* Headline */}
-        <h1
+        <motion.h1
+          variants={itemVariants}
           id="hero-title"
-          className="mt-8 max-w-4xl text-4xl font-extrabold leading-none tracking-tight text-surface tablet:text-5xl desktop:text-6xl"
+          className="mt-8 max-w-4xl text-5xl font-black leading-[1.1] tracking-tight text-surface tablet:text-6xl desktop:text-7xl drop-shadow-2xl"
         >
-          Goa Startup Festival 2026
-        </h1>
+          Goa Startup Festival <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-strong">2026</span>
+        </motion.h1>
 
         {/* Triple rule from the logo */}
-        <div
+        <motion.div
+          variants={itemVariants}
           aria-hidden="true"
-          className="brand-rule mt-8 w-24 text-surface/50"
+          className="brand-rule mt-10 w-32 text-accent/50"
         />
 
-        <p className="mt-8 max-w-2xl text-xl font-bold text-surface tablet:text-2xl">
+        <motion.p variants={itemVariants} className="mt-10 max-w-2xl text-xl font-bold text-surface/90 tablet:text-2xl drop-shadow-md">
           Where Ideas Become Enterprises
-        </p>
-        <p className="mt-4 max-w-2xl text-lg text-surface/80">
+        </motion.p>
+        
+        <motion.p variants={itemVariants} className="mt-4 max-w-2xl text-lg text-surface/70 leading-relaxed">
           Two days of keynotes, workshops, competitions, and showcases bringing
           founders, investors, mentors, and students together in South Goa.
-        </p>
+        </motion.p>
 
-        {/* Date and venue */}
-        <div className="mt-8 flex flex-col items-center gap-4 text-base font-semibold text-surface tablet:flex-row tablet:gap-8">
-          <span className="inline-flex items-center gap-2">
+        {/* Date and venue (Glass Card) */}
+        <motion.div 
+          variants={itemVariants}
+          className="mt-10 flex flex-col items-center gap-4 text-sm font-bold text-surface tablet:flex-row tablet:gap-8 glass-panel px-8 py-5 rounded-2xl shadow-xl"
+        >
+          <span className="inline-flex items-center gap-2.5">
             <CalendarDays aria-hidden="true" className="text-accent" size={20} />
             2–3 September 2026
           </span>
           <span
             aria-hidden="true"
-            className="hidden h-4 w-px bg-surface/30 tablet:block"
+            className="hidden h-5 w-px bg-surface/20 tablet:block"
           />
-          <span className="inline-flex items-center gap-2 text-center tablet:text-left">
+          <span className="inline-flex items-center gap-2.5 text-center tablet:text-left">
             <MapPin aria-hidden="true" className="text-accent" size={20} />
             Parul University Goa Campus, Betul, South Goa
           </span>
-        </div>
+        </motion.div>
 
         {/* Actions */}
-        <div className="mt-12 flex w-full flex-col items-center gap-4 tablet:w-auto tablet:flex-row">
+        <motion.div variants={itemVariants} className="mt-12 flex w-full flex-col items-center gap-5 tablet:w-auto tablet:flex-row">
           <Link
             href={cta.href}
-            className="group inline-flex min-h-touch min-w-touch w-full items-center justify-center gap-2 rounded-md bg-surface px-8 py-4 text-lg font-extrabold text-primary shadow-lg transition-colors hover:bg-accent hover:text-ink tablet:w-auto"
+            className="group relative inline-flex min-h-touch min-w-touch w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-strong px-10 py-4 text-lg font-extrabold text-white shadow-[0_0_40px_rgba(216,31,38,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_60px_rgba(216,31,38,0.6)] tablet:w-auto overflow-hidden"
           >
-            {cta.label}
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10">{cta.label}</span>
             <ArrowRight
               aria-hidden="true"
               size={20}
-              className="transition-transform group-hover:translate-x-1"
+              className="relative z-10 transition-transform group-hover:translate-x-1"
             />
           </Link>
           <a
             href="#schedule"
-            className="inline-flex min-h-touch w-full items-center justify-center rounded-md border-2 border-surface/40 px-8 py-4 text-lg font-bold text-surface transition-colors hover:border-surface hover:bg-surface/10 tablet:w-auto"
+            className="glass-button inline-flex min-h-touch w-full items-center justify-center rounded-xl px-10 py-4 text-lg font-bold text-surface tablet:w-auto hover:text-accent transition-colors"
           >
             Explore Schedule
           </a>
-        </div>
+        </motion.div>
 
-        {/* Impact strip — the incubator's track record, stated up front */}
-        <dl className="mt-16 grid w-full max-w-3xl grid-cols-2 gap-6 border-t border-surface/20 pt-8 desktop:grid-cols-4">
-          {FESTIVAL_STATISTICS.map((statistic) => (
-            <div key={statistic.label} className="text-center">
-              <dd className="text-3xl font-extrabold leading-none text-surface">
-                {statistic.value}
-              </dd>
-              <dt className="mt-2 text-xs font-semibold uppercase tracking-widest text-surface/70">
-                {statistic.label}
-              </dt>
-            </div>
-          ))}
-        </dl>
-      </div>
+        {/* Impact strip — unified glass panel */}
+        <motion.div variants={itemVariants} className="mt-20 w-full max-w-4xl glass-panel rounded-3xl p-8 shadow-2xl">
+          <dl className="grid w-full grid-cols-2 gap-8 desktop:grid-cols-4">
+            {FESTIVAL_STATISTICS.map((statistic) => (
+              <div key={statistic.label} className="text-center group">
+                <dd className="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70 group-hover:to-accent transition-all duration-500">
+                  {statistic.value}
+                </dd>
+                <dt className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-surface/50">
+                  {statistic.label}
+                </dt>
+              </div>
+            ))}
+          </dl>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
