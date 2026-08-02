@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { toHaveNoViolations } from "jest-axe";

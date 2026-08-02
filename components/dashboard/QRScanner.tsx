@@ -69,6 +69,14 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
     };
   }, [stopScanner]);
 
+  const addToHistory = useCallback((result: ScanResultData) => {
+    const eventName = events.find((e) => e.id === selectedEventId)?.name ?? "Unknown";
+    setScanHistory((prev) => [
+      { result, timestamp: Date.now(), eventName },
+      ...prev.slice(0, 4), // Keep last 5
+    ]);
+  }, [events, selectedEventId]);
+
   const handleScanResult = useCallback(
     async (decodedText: string) => {
       // Prevent multiple scans while processing or paused
@@ -125,16 +133,10 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         setLoading(false);
       }
     },
-    [selectedEventId, loading, paused, onScanResult]
+    [selectedEventId, loading, paused, onScanResult, addToHistory]
   );
 
-  function addToHistory(result: ScanResultData) {
-    const eventName = events.find((e) => e.id === selectedEventId)?.name ?? "Unknown";
-    setScanHistory((prev) => [
-      { result, timestamp: Date.now(), eventName },
-      ...prev.slice(0, 4), // Keep last 5
-    ]);
-  }
+
 
   const startScanner = useCallback(async () => {
     if (!selectedEventId) {

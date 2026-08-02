@@ -15,6 +15,15 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
   const [isThundering, setIsThundering] = useState(false);
   const Icon = audience.icon;
 
+  const [rainDrops] = useState(() => Array.from({ length: 15 }).map(() => ({
+    duration: 0.5 + Math.random() * 0.4,
+    delay: Math.random() * 0.3
+  })));
+  
+  const [cloudMotion] = useState(() => ({
+    duration: 5 + Math.random() * 2
+  }));
+
   const handleClick = () => {
     if (isRaining) {
       // Thunder randomly on some clicks while raining
@@ -38,7 +47,7 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
       {/* Rain Particle System */}
       <div className="absolute inset-x-8 -bottom-32 h-32 overflow-hidden pointer-events-none flex justify-around z-0">
         {isRaining &&
-          Array.from({ length: 15 }).map((_, i) => (
+          rainDrops.map((drop, i) => (
             <motion.div
               key={i}
               initial={{ y: -20, opacity: 0 }}
@@ -47,9 +56,9 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
                 opacity: [0, 1, 0],
               }}
               transition={{
-                duration: 0.5 + Math.random() * 0.4,
+                duration: drop.duration,
                 repeat: Infinity,
-                delay: Math.random() * 0.3,
+                delay: drop.delay,
                 ease: "linear",
               }}
               className="w-[2px] h-8 bg-sky-200/70 rounded-full"
@@ -66,7 +75,7 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
         }}
         transition={{
           y: {
-            duration: 5 + Math.random() * 2,
+            duration: cloudMotion.duration,
             repeat: Infinity,
             ease: "easeInOut",
             delay: delay,
