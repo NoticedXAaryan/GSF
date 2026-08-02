@@ -178,7 +178,7 @@ export function DashboardShell({
           {/* User */}
           <div className="mt-3 rounded-tile bg-panel-alt p-3">
             <div 
-              className="flex items-center gap-3 cursor-pointer rounded-md p-1 hover:bg-surface-alt transition-colors"
+              className="flex items-center gap-3 cursor-pointer rounded-md p-1 hover:bg-panel transition-colors"
               onClick={() => setIsProfileModalOpen(true)}
             >
               <UserAvatar userName={userName} userImage={userImage} size={36} />
@@ -193,7 +193,7 @@ export function DashboardShell({
               <button
                 type="button"
                 onClick={() => setIsProfileModalOpen(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-surface-alt px-3 py-2 text-xs font-bold tracking-tight text-fg transition-opacity hover:opacity-90"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-panel px-3 py-2 text-xs font-bold tracking-tight text-fg transition-opacity hover:opacity-90"
               >
                 <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Profile Settings
