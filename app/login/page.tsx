@@ -169,6 +169,22 @@ function LoginContent() {
           <LoadingIndicator visible={policy.showLoadingIndicator} />
 
           <form className="space-y-[var(--spacing-4)]" onSubmit={handleEmailLogin} noValidate>
+            {/* Google OAuth — primary quick action */}
+            <GoogleOAuthButton
+              onClick={handleGoogleLogin}
+              loading={formState.kind === "oauthRedirecting"}
+              disabled={policy.controlsDisabled}
+            />
+
+            {/* Divider */}
+            <div className="relative flex items-center py-[var(--spacing-2)]">
+              <div className="flex-grow border-t border-surface-alt" />
+              <span className="flex-shrink-0 mx-[var(--spacing-4)] text-ink-muted text-xs uppercase tracking-wider">
+                Or continue with email
+              </span>
+              <div className="flex-grow border-t border-surface-alt" />
+            </div>
+
             {/* Email Field */}
             <AuthTextField
               type="email"
@@ -192,6 +208,14 @@ function LoginContent() {
               autoComplete="current-password"
             />
 
+            {/* Submit Button */}
+            <SubmitButton
+              loading={formState.kind === "submitting"}
+              disabled={policy.controlsDisabled}
+            >
+              Log in
+            </SubmitButton>
+
             {/* Links row */}
             <div className="flex flex-wrap justify-between items-center text-sm pt-[var(--spacing-1)] gap-[var(--spacing-2)]">
               <span className="text-ink-muted">
@@ -210,32 +234,6 @@ function LoginContent() {
                 Forgot password?
               </Link>
             </div>
-
-            {/* Google OAuth */}
-            <div className="pt-[var(--spacing-2)]">
-              <GoogleOAuthButton
-                onClick={handleGoogleLogin}
-                loading={formState.kind === "oauthRedirecting"}
-                disabled={policy.controlsDisabled}
-              />
-            </div>
-
-            {/* Divider */}
-            <div className="relative flex items-center py-[var(--spacing-2)]">
-              <div className="flex-grow border-t border-surface-alt" />
-              <span className="flex-shrink-0 mx-[var(--spacing-4)] text-ink-muted text-xs uppercase tracking-wider">
-                Or
-              </span>
-              <div className="flex-grow border-t border-surface-alt" />
-            </div>
-
-            {/* Submit Button */}
-            <SubmitButton
-              loading={formState.kind === "submitting"}
-              disabled={policy.controlsDisabled}
-            >
-              Log in
-            </SubmitButton>
           </form>
         </div>
       </div>

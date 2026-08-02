@@ -136,6 +136,22 @@ export default function SignupPage() {
           <LoadingIndicator visible={policy.showLoadingIndicator} />
 
           <form className="space-y-[var(--spacing-4)]" onSubmit={handleEmailSignup} noValidate>
+            {/* Google OAuth — primary quick action */}
+            <GoogleOAuthButton
+              onClick={handleGoogleSignup}
+              loading={formState.kind === "oauthRedirecting"}
+              disabled={policy.controlsDisabled}
+            />
+
+            {/* Divider */}
+            <div className="relative flex items-center py-[var(--spacing-2)]">
+              <div className="flex-grow border-t border-surface-alt" />
+              <span className="flex-shrink-0 mx-[var(--spacing-4)] text-ink-muted text-xs uppercase tracking-wider">
+                Or sign up with email
+              </span>
+              <div className="flex-grow border-t border-surface-alt" />
+            </div>
+
             {/* Name Field */}
             <AuthTextField
               type="text"
@@ -171,8 +187,16 @@ export default function SignupPage() {
               autoComplete="new-password"
             />
 
+            {/* Submit Button */}
+            <SubmitButton
+              loading={formState.kind === "submitting"}
+              disabled={policy.controlsDisabled}
+            >
+              Create Account
+            </SubmitButton>
+
             {/* Login link */}
-            <p className="text-sm text-ink-muted pt-[var(--spacing-1)]">
+            <p className="text-sm text-ink-muted text-center pt-[var(--spacing-1)]">
               Already have an account?{" "}
               <Link
                 href="/login"
@@ -181,32 +205,6 @@ export default function SignupPage() {
                 Log in
               </Link>
             </p>
-
-            {/* Google OAuth */}
-            <div className="pt-[var(--spacing-2)]">
-              <GoogleOAuthButton
-                onClick={handleGoogleSignup}
-                loading={formState.kind === "oauthRedirecting"}
-                disabled={policy.controlsDisabled}
-              />
-            </div>
-
-            {/* Divider */}
-            <div className="relative flex items-center py-[var(--spacing-2)]">
-              <div className="flex-grow border-t border-surface-alt" />
-              <span className="flex-shrink-0 mx-[var(--spacing-4)] text-ink-muted text-xs uppercase tracking-wider">
-                Or
-              </span>
-              <div className="flex-grow border-t border-surface-alt" />
-            </div>
-
-            {/* Submit Button */}
-            <SubmitButton
-              loading={formState.kind === "submitting"}
-              disabled={policy.controlsDisabled}
-            >
-              Create Account
-            </SubmitButton>
           </form>
         </div>
       </div>

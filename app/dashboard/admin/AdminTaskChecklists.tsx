@@ -31,8 +31,10 @@ export function AdminTaskChecklists({ checklists }: AdminTaskChecklistsProps) {
   const handleTaskDelete = useCallback(
     async (taskId: string) => {
       try {
-        await fetch(`/api/admin/tasks?taskId=${taskId}`, {
+        await fetch('/api/admin/tasks', {
           method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId }),
         });
         router.refresh();
       } catch (err) {

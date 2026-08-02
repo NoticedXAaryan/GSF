@@ -20,6 +20,7 @@ import {
   FileText,
   LogOut,
   ArrowUpRight,
+  UserCheck,
 } from 'lucide-react';
 
 interface NavLink {
@@ -42,6 +43,7 @@ function getNavLinks(role: string): NavLink[] {
       { label: 'Overview', short: 'Home', href: '/dashboard/admin', icon: <Shield className={ICON} />, exact: true },
       { label: 'Users', short: 'Users', href: '/dashboard/admin/users', icon: <Users className={ICON} /> },
       { label: 'Events', short: 'Events', href: '/dashboard/admin/events', icon: <Calendar className={ICON} /> },
+      { label: 'Volunteers', short: 'Vols', href: '/dashboard/admin/volunteers', icon: <UserCheck className={ICON} /> },
       { label: 'Announcements', short: 'News', href: '/dashboard/admin/announcements', icon: <Megaphone className={ICON} /> },
       { label: 'Tasks', short: 'Tasks', href: '/dashboard/admin/tasks', icon: <ClipboardList className={ICON} /> },
     ];

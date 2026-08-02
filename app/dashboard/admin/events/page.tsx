@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -46,6 +47,7 @@ function getTypeBadgeClass(type: string): string {
 }
 
 export default function AdminEventsPage() {
+  const router = useRouter();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -172,14 +174,24 @@ export default function AdminEventsPage() {
                       {event.coordinatorName && <span>Coordinator: {event.coordinatorName}</span>}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setEditingEvent(event)}
-                    className="flex-shrink-0"
-                  >
-                    Edit
-                  </Button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {event.type !== 'open' && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => router.push(`/dashboard/admin/events/${event.id}/applications`)}
+                      >
+                        Applications
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setEditingEvent(event)}
+                    >
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </CardBody>
             </Card>

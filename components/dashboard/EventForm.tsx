@@ -159,6 +159,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         targetAudience: targetAudience.trim() || "all",
       };
 
+      // Automatically set requiresShortlisting based on type
+      (formData as unknown as Record<string, unknown>).requiresShortlisting = type === 'shortlisted';
+
       if (isEditMode) {
         formData.status = status;
       }
