@@ -58,7 +58,6 @@ export const auth = betterAuth({
         type: 'string',
         required: false,
         defaultValue: '',
-        fieldName: 'college_dept', // Map to DB schema
       },
       year: {
         type: 'string',
@@ -75,14 +74,12 @@ export const auth = betterAuth({
         required: false,
         defaultValue: '',
         input: false, // Server-generated
-        fieldName: 'pass_id', // Map to DB schema
       },
       profileComplete: {
         type: 'boolean',
         required: false,
         defaultValue: false,
         input: false, // Server-controlled
-        fieldName: 'profile_complete', // Map to DB schema
       },
     },
   },
