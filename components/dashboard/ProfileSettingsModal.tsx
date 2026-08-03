@@ -344,9 +344,26 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
               />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button onClick={handleSave} loading={saving} className="flex-1">Save Changes</Button>
-              <Button variant="secondary" onClick={onClose} disabled={saving}>Close</Button>
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex gap-3">
+                <Button onClick={handleSave} loading={saving} className="flex-1">Save Changes</Button>
+                <Button variant="secondary" onClick={onClose} disabled={saving}>Close</Button>
+              </div>
+              <Button 
+                variant="secondary" 
+                className="w-full text-red-500 hover:text-red-600 hover:bg-red-500/10 lg:hidden"
+                onClick={async () => {
+                  await authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        window.location.href = '/login';
+                      }
+                    }
+                  });
+                }}
+              >
+                Sign Out
+              </Button>
             </div>
           </div>
         ) : null}
