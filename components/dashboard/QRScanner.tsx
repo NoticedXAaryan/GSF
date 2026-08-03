@@ -460,7 +460,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         <div
           ref={scannerContainerRef}
           id="qr-scanner-container"
-          className={`relative w-full overflow-hidden rounded-bento transition-all ${scanning ? "min-h-[300px] ring-2 ring-lime/50 shadow-[0_0_15px_rgba(153,255,51,0.1)]" : "hidden"}`}
+          className={`relative w-full overflow-hidden rounded-bento transition-all ${(scanning || cameraLoading) ? "min-h-[300px] ring-2 ring-lime/50 shadow-[0_0_15px_rgba(153,255,51,0.1)]" : "hidden"}`}
         />
 
         {/* Paused indicator */}

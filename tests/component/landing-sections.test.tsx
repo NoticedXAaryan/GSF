@@ -179,9 +179,9 @@ describe("AboutSection", () => {
     render(<AboutSection />);
     const expectedStats = [
       { label: "Startups Incubated", value: "300+" },
-      { label: "Revenue", value: "₹200 Cr+" },
-      { label: "Investments", value: "₹40 Cr+" },
-      { label: "Jobs Created", value: "1,600+" },
+      { label: "Startup Revenue", value: "₹200+ Crore" },
+      { label: "Investments Facilitated", value: "₹40+ Crore" },
+      { label: "Employment Opportunities Created", value: "1,600+" },
     ];
     for (const stat of expectedStats) {
       expect(screen.getByText(stat.label)).toBeInTheDocument();

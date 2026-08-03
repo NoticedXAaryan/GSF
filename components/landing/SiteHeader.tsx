@@ -17,7 +17,6 @@ const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Highlights", href: "#highlights" },
   { label: "Schedule", href: "#schedule" },
-  { label: "Speakers", href: "#speakers" },
   { label: "FAQ", href: "#faq" },
 ] as const;
 
@@ -53,18 +52,18 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
           borderRadius: isScrolled ? 999 : 0,
           // Glass, not a black slab: transparent at rest, lightly frosted once condensed.
           backgroundColor: isScrolled
-            ? "rgba(252, 251, 249, 0.85)"
-            : "rgba(252, 251, 249, 0)",
+            ? "rgba(255, 255, 255, 0.98)"
+            : "rgba(255, 255, 255, 0)",
           borderColor: isScrolled
-            ? "rgba(0, 0, 0, 0.06)"
+            ? "rgba(0, 0, 0, 0.08)"
             : "rgba(0, 0, 0, 0)",
           boxShadow: isScrolled
-            ? "0 18px 50px -18px rgba(0, 0, 0, 0.1)"
+            ? "0 10px 30px -10px rgba(0, 0, 0, 0.15)"
             : "0 0 0 0 rgba(0, 0, 0, 0)",
         }}
         transition={{ type: "spring", stiffness: 380, damping: 32 }}
         className={cn(
-          "pointer-events-auto border sticky top-0 h-20 z-50",
+          "pointer-events-auto border sticky top-0 z-50",
           isScrolled && "backdrop-blur-xl backdrop-saturate-150"
         )}
       >
@@ -100,8 +99,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "group relative py-1.5 font-bold text-ink-muted transition-colors hover:text-ink",
-                  isScrolled ? "text-[13px]" : "text-sm"
+                  "group relative py-1.5 font-bold transition-colors",
+                  isScrolled ? "text-ink hover:text-primary text-[14px]" : "text-surface/90 hover:text-surface text-sm"
                 )}
               >
                 {link.label}
@@ -149,8 +148,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 <Link
                   href="/login"
                   className={cn(
-                    "font-bold text-ink-muted transition-colors hover:text-ink",
-                    isScrolled ? "text-[13px]" : "text-sm"
+                    "font-bold transition-colors",
+                    isScrolled ? "text-ink hover:text-primary text-[14px]" : "text-surface/90 hover:text-surface text-sm"
                   )}
                 >
                   Login
@@ -158,8 +157,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 <Link
                   href="/signup"
                   className={cn(
-                    "inline-flex items-center justify-center rounded-pill bg-primary font-bold text-surface transition-colors hover:bg-primary-strong",
-                    isScrolled ? "px-5 py-2 text-[13px]" : "px-6 py-2.5 text-sm"
+                    "inline-flex items-center justify-center rounded-pill font-bold transition-colors",
+                    isScrolled ? "bg-primary text-surface hover:bg-primary-strong px-5 py-2 text-[13px]" : "bg-surface text-primary hover:bg-surface-alt px-6 py-2.5 text-sm"
                   )}
                 >
                   Register
@@ -173,7 +172,10 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
             type="button"
             aria-label="Open navigation menu"
             aria-haspopup="dialog"
-            className="desktop:hidden flex min-h-touch min-w-touch items-center justify-center rounded-pill text-ink-muted transition-colors hover:text-ink"
+            className={cn(
+              "desktop:hidden flex min-h-touch min-w-touch items-center justify-center rounded-pill transition-colors",
+              isScrolled ? "text-ink-muted hover:text-ink" : "text-surface/80 hover:text-surface"
+            )}
             data-mobile-nav-trigger
           >
             <Menu size={24} aria-hidden="true" />

@@ -1,62 +1,43 @@
 import {
   ABOUT_DESCRIPTION,
   FESTIVAL_ORGANIZERS,
-  FESTIVAL_STATISTICS,
 } from "@/lib/landing/content";
 
 export function AboutSection() {
   return (
-    <section id="about" aria-labelledby="about-title" className="bg-surface section-padding">
-      <div className="site-container">
+    <section id="about" aria-labelledby="about-title" className="relative bg-blue-950 section-padding overflow-hidden">
+      {/* Texture and ambient glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-800/40 via-blue-950 to-slate-950"></div>
+      <div className="absolute inset-0 opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+
+      <div className="site-container relative z-10">
         <header className="max-w-3xl">
-          <p className="mb-2 font-semibold uppercase tracking-widest text-primary">
+          <p className="mb-2 font-semibold uppercase tracking-widest text-amber-300">
             Our purpose
           </p>
-          <h2 id="about-title" className="font-bold text-ink">About the Festival</h2>
-          <div aria-hidden="true" className="brand-rule mt-6 w-20 text-primary/40" />
-          <p className="mt-6 text-lg text-ink-muted">{ABOUT_DESCRIPTION}</p>
+          <h2 id="about-title" className="text-3xl font-extrabold text-white tablet:text-4xl">About the Festival</h2>
+          <div aria-hidden="true" className="brand-rule mt-6 w-20 text-amber-300/50" />
+          <p className="mt-6 text-lg text-blue-100/80 leading-relaxed">{ABOUT_DESCRIPTION}</p>
         </header>
 
         {/* Organizers */}
-        <div className="mt-12 grid grid-cols-1 gap-4 desktop:grid-cols-3">
-          {FESTIVAL_ORGANIZERS.map((organizer, index) => (
+        <div className="mt-16 grid grid-cols-1 gap-6 desktop:grid-cols-3">
+          {FESTIVAL_ORGANIZERS.map((organizer) => (
             <article
               key={organizer.name}
-              className="relative overflow-hidden rounded-2xl border border-surface-alt bg-canvas p-6 shadow-sm transition-all hover:border-primary hover:shadow-md"
+              className="group relative flex flex-col rounded-2xl border border-[#E5D3B3] bg-gradient-to-b from-[#FDFBF7] to-[#F4EBD3] p-8 shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:border-[#D4AF37]"
             >
-              <div className="flex items-center gap-4">
-                <span
-                  aria-hidden="true"
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-extrabold text-primary"
-                >
-                  {index + 1}
-                </span>
-                <h3 className="font-bold text-ink">{organizer.name}</h3>
+              <div className="mb-8 flex h-16 items-center">
+                {organizer.logoUrl ? (
+                  <img src={organizer.logoUrl} alt={`${organizer.name} logo`} className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <h3 className="font-bold text-slate-900 text-xl">{organizer.name}</h3>
+                )}
               </div>
-              <p className="mt-4 text-ink-muted">{organizer.description}</p>
+              {organizer.logoUrl && <h3 className="sr-only">{organizer.name}</h3>}
+              <p className="text-slate-700 font-medium leading-relaxed flex-1">{organizer.description}</p>
             </article>
           ))}
-        </div>
-
-        {/* Track record */}
-        <div className="mt-12 overflow-hidden rounded-2xl border border-surface-alt bg-canvas shadow-sm">
-          <div className="px-6 py-8 tablet:px-12">
-            <p className="text-center text-sm font-semibold uppercase tracking-widest text-ink-muted">
-              PIERC track record
-            </p>
-            <dl className="mt-8 grid grid-cols-2 gap-8 desktop:grid-cols-4">
-              {FESTIVAL_STATISTICS.map((statistic) => (
-                <div key={statistic.label} className="text-center">
-                  <dd className="text-3xl font-extrabold leading-none text-accent tablet:text-4xl">
-                    {statistic.value}
-                  </dd>
-                  <dt className="mt-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">
-                    {statistic.label}
-                  </dt>
-                </div>
-              ))}
-            </dl>
-          </div>
         </div>
       </div>
     </section>

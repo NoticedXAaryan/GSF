@@ -22,13 +22,13 @@ export function AudienceSection() {
         }}
       >
         {/* Extremely subtle noise texture overlay */}
-        <div className="absolute inset-0 bg-noise opacity-15 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" style={{ willChange: "transform", transform: "translateZ(0)" }} />
       </div>
 
       {/* Decorative background clouds (purely visual) */}
-      <div className="absolute top-10 left-10 w-64 h-32 bg-white/20 rounded-full blur-3xl" />
-      <div className="absolute top-40 right-20 w-96 h-48 bg-white/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-1/3 w-80 h-40 bg-white/20 rounded-full blur-3xl" />
+      <div className="absolute top-10 left-10 w-64 h-32 bg-white/20 rounded-full blur-3xl" style={{ willChange: "transform", transform: "translateZ(0)" }} />
+      <div className="absolute top-40 right-20 w-96 h-48 bg-white/30 rounded-full blur-3xl" style={{ willChange: "transform", transform: "translateZ(0)" }} />
+      <div className="absolute bottom-20 left-1/3 w-80 h-40 bg-white/20 rounded-full blur-3xl" style={{ willChange: "transform", transform: "translateZ(0)" }} />
 
       <div className="site-container relative z-10">
         <header className="max-w-3xl text-center mx-auto mb-20 tablet:mb-32">

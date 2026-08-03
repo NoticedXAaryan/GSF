@@ -1,13 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 
-export const ORGANIZER_NAMES = ["PIERC", "Parul University", "PU Goa"] as const;
+export const ORGANIZER_NAMES = ["PIERC", "Parul University Vadodara", "Parul University Goa"] as const;
 export type OrganizerName = (typeof ORGANIZER_NAMES)[number];
 
 export const REQUIRED_STATISTICS = [
   { label: "Startups Incubated", value: "300+" },
-  { label: "Revenue", value: "₹200 Cr+" },
-  { label: "Investments", value: "₹40 Cr+" },
-  { label: "Jobs Created", value: "1,600+" },
+  { label: "Startup Revenue", value: "₹200+ Crore" },
+  { label: "Investments Facilitated", value: "₹40+ Crore" },
+  { label: "Employment Opportunities Created", value: "1,600+" },
 ] as const;
 export type FestivalStat = (typeof REQUIRED_STATISTICS)[number];
 
@@ -15,8 +15,8 @@ export const REQUIRED_HIGHLIGHTS = [
   "Signature Talks",
   "Startup Idea Competition",
   "Fireside Chat with Investors & Industry",
-  "Startup Expo",
-  "Startup Masterclass",
+  "Startup Expo & Networking",
+  "Startup Masterclasses",
   "Startup Ecosystem Connect",
 ] as const;
 export type RequiredHighlightTitle = (typeof REQUIRED_HIGHLIGHTS)[number];
@@ -31,6 +31,7 @@ export interface ImageAsset {
 export interface Organizer {
   name: OrganizerName;
   description: string;
+  logoUrl?: string;
 }
 
 export interface Highlight {

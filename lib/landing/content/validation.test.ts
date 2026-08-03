@@ -19,12 +19,12 @@ const IconF = (() => null) as unknown as LucideIcon;
 const words = (count: number) => Array.from({ length: count }, (_, i) => `word${i}`).join(" ");
 
 function validContent(): LandingContent {
-  const highlightTitles = [
+  const highlightTitles: readonly RequiredHighlightTitle[] = [
     "Signature Talks",
     "Startup Idea Competition",
     "Fireside Chat with Investors & Industry",
-    "Startup Expo",
-    "Startup Masterclass",
+    "Startup Expo & Networking",
+    "Startup Masterclasses",
     "Startup Ecosystem Connect",
   ];
   const icons = [IconA, IconB, IconC, IconD, IconE, IconF];
@@ -38,9 +38,9 @@ function validContent(): LandingContent {
     ],
     statistics: [
       { label: "Startups Incubated", value: "300+" },
-      { label: "Revenue", value: "₹200 Cr+" },
-      { label: "Investments", value: "₹40 Cr+" },
-      { label: "Jobs Created", value: "1,600+" },
+      { label: "Startup Revenue", value: "₹200+ Crore" },
+      { label: "Investments Facilitated", value: "₹40+ Crore" },
+      { label: "Employment Opportunities Created", value: "1,600+" },
     ],
     highlights: highlightTitles.map((title, index) => ({
       id: `highlight-${index}`,
@@ -96,9 +96,9 @@ test("reports exact-pair, range, coverage, icon, and image violations", () => {
   content.aboutDescription = words(29);
   content.statistics = [
     { label: "Startups Incubated", value: "300+" },
-    { label: "Revenue", value: "₹200 Cr+" },
-    { label: "Investments", value: "₹40 Cr+" },
-    { label: "Revenue", value: "₹200 Cr+" },
+    { label: "Startup Revenue", value: "₹200+ Crore" },
+    { label: "Investments Facilitated", value: "₹40+ Crore" },
+    { label: "Employment Opportunities Created", value: "1,600+" },
   ];
   content.highlights[1].icon = content.highlights[0].icon;
   content.speakers[0].photo = { src: "/bad.jpg", width: 0, height: 400, alt: "" };

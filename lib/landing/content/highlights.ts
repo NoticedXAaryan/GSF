@@ -36,7 +36,7 @@ export const FESTIVAL_HIGHLIGHTS = [
   },
   {
     id: "startup-showcases",
-    title: "Startup Expo",
+    title: "Startup Expo & Networking",
     description: "Discover innovative startups and breakthrough technologies while interacting directly with founders and investors.",
     icon: Presentation,
     imageUrl: "/images/highlights/showcase.png",
@@ -44,7 +44,7 @@ export const FESTIVAL_HIGHLIGHTS = [
   },
   {
     id: "workshops",
-    title: "Startup Masterclass",
+    title: "Startup Masterclasses",
     description: "Learn practical startup frameworks through expert-led sessions covering idea generation and business models.",
     icon: Lightbulb,
     imageUrl: "/images/highlights/workshop.png",

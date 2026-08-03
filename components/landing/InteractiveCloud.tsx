@@ -62,6 +62,7 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
                 ease: "linear",
               }}
               className="w-[2px] h-8 bg-sky-200/70 rounded-full"
+              style={{ willChange: "transform, opacity", transform: "translateZ(0)" }}
             />
           ))}
       </div>
@@ -83,7 +84,11 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
         }}
         onClick={handleClick}
         className="relative z-10 cursor-pointer mt-16"
-        style={{ filter: "drop-shadow(0 20px 30px rgba(0, 0, 0, 0.08)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.04))" }}
+        style={{ 
+          filter: "drop-shadow(0 20px 30px rgba(0, 0, 0, 0.08)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.04))",
+          willChange: "transform, filter",
+          transform: "translateZ(0)"
+        }}
       >
         <motion.div 
           animate={isThundering ? {
@@ -97,7 +102,10 @@ export function InteractiveCloud({ audience, delay = 0 }: InteractiveCloudProps)
           }}
           transition={isThundering ? { duration: 0.25 } : { duration: 0.5 }}
           className="relative rounded-[40px] px-8 pt-14 pb-12 w-full"
-          style={{ boxShadow: "inset 0 -12px 24px rgba(0,0,0,0.04), inset 0 4px 12px rgba(255,255,255,0.8)" }}
+          style={{ 
+            boxShadow: "inset 0 -12px 24px rgba(0,0,0,0.04), inset 0 4px 12px rgba(255,255,255,0.8)",
+            willChange: "transform, background-color" 
+          }}
         >
           {/* Organic Cloud Humps */}
           {/* Top Left Hump */}

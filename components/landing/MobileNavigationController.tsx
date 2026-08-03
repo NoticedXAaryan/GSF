@@ -14,7 +14,6 @@ const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Highlights", href: "#highlights" },
   { label: "Schedule", href: "#schedule" },
-  { label: "Speakers", href: "#speakers" },
   { label: "FAQ", href: "#faq" },
 ] as const;
 
@@ -228,7 +227,7 @@ export function MobileNavigationController({
       role="dialog"
       aria-modal="true"
       aria-label="Navigation menu"
-      className="fixed inset-0 z-[100] flex flex-col bg-surface"
+      className="fixed inset-0 z-[100] flex flex-col bg-surface pointer-events-auto"
       style={{
         opacity: overlayOpacity,
         transition:

@@ -262,8 +262,9 @@ describe("Build Validation", () => {
       const staticMarkers = [
         // About section specific text that would only appear if the component leaked
         "Startups Incubated",
-        "Where Ideas Become Enterprises",
-        // Footer specific content
+        "Startup Revenue",
+        "Investments Facilitated",
+        "Employment Opportunities Created",
         "Jointly organized by PIERC",
       ];
 
