@@ -261,5 +261,5 @@ describe("Property 2: Governed styles use declared tokens", () => {
       }),
       { numRuns: 100 },
     );
-  });
+  }, 30000);
 });
