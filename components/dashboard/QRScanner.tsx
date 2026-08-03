@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { scannerAudio } from "@/lib/audio";
 
 interface SubEventOption {
   id: string;
@@ -96,6 +97,10 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
       setLoading(true);
       setError(null);
       setCurrentQrToken(decodedText);
+      
+      // Initial scan detected feedback
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
+      scannerAudio?.playScanBeep();
 
       try {
         const response = await fetch("/api/scan", {
@@ -117,6 +122,10 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
           onScanResult?.(data);
           addToHistory(data);
           setLoading(false);
+          
+          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          scannerAudio?.playErrorBeep();
+          
           return;
         }
 
@@ -138,6 +147,14 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
           onScanResult?.(data);
           addToHistory(data);
           
+          if (data.result === 'denied') {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            scannerAudio?.playErrorBeep();
+          } else {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(100);
+            scannerAudio?.playErrorBeep(); // Already checked in is an error state
+          }
+          
           setPaused(true);
           pauseTimerRef.current = setTimeout(() => {
             setPaused(false);
@@ -153,6 +170,9 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         setScanResult(data);
         onScanResult?.(data);
         addToHistory(data);
+        
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        scannerAudio?.playErrorBeep();
       } finally {
         setLoading(false);
       }
@@ -184,6 +204,9 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         setScanResult(data);
         onScanResult?.(data);
         addToHistory(data);
+        
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        scannerAudio?.playErrorBeep();
       } else {
         const data = (await response.json()) as ScanResultData;
         setScanResult(data);
@@ -192,6 +215,11 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
 
         if (data.result === "allowed") {
           setCheckInCount((prev) => prev + 1);
+          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([50, 50, 50]);
+          scannerAudio?.playSuccessBeep();
+        } else {
+          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          scannerAudio?.playErrorBeep();
         }
       }
     } catch {
@@ -202,6 +230,9 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
       setScanResult(data);
       onScanResult?.(data);
       addToHistory(data);
+      
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      scannerAudio?.playErrorBeep();
     } finally {
       setLoading(false);
       setPendingValidation(null);
@@ -279,8 +310,26 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
       setCameraLoading(false);
     } catch (err) {
       setCameraLoading(false);
-      const message =
-        err instanceof Error ? err.message : "Failed to access camera";
+      let message = "Failed to access camera";
+      
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          message = "Camera access was denied. Please check your browser settings.";
+        } else if (err.name === 'NotFoundError') {
+          message = "No camera detected on this device.";
+        } else {
+          message = err.message;
+        }
+      } else if (typeof err === 'string') {
+        if (err.includes('NotAllowedError')) {
+          message = "Camera access was denied. Please check your browser settings.";
+        } else if (err.includes('NotFoundError')) {
+          message = "No camera detected on this device.";
+        } else {
+          message = err;
+        }
+      }
+
       setError(message);
       const data: ScanResultData = {
         result: "denied",
@@ -411,7 +460,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         <div
           ref={scannerContainerRef}
           id="qr-scanner-container"
-          className={`w-full overflow-hidden rounded-bento ${scanning || cameraLoading ? "min-h-[300px]" : "hidden"}`}
+          className={`relative w-full overflow-hidden rounded-bento transition-all ${scanning ? "min-h-[300px] ring-2 ring-lime/50 shadow-[0_0_15px_rgba(153,255,51,0.1)]" : "hidden"}`}
         />
 
         {/* Paused indicator */}
