@@ -8,60 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 
-const COLLEGES = {
-  "Parul College of Engineering and IT": [
-    "B.Tech Computer Science & Engineering",
-    "B.Tech AI & ML",
-    "B.Tech Cyber Security",
-    "B.Tech Data Science",
-    "BCA",
-    "BCA (Specializations)",
-    "MCA"
-  ],
-  "Parul College of Management Studies": [
-    "BBA",
-    "BBA (Finance)",
-    "BBA (Marketing)",
-    "MBA"
-  ],
-  "Parul College of Nursing": [
-    "GNM",
-    "B.Sc Nursing",
-    "M.Sc Nursing"
-  ],
-  "Parul College of Physiotherapy": [
-    "Bachelor of Physiotherapy (BPT)",
-    "MPT"
-  ],
-  "Parul College of Applied & Health Sciences": [
-    "B.Sc Biotechnology",
-    "B.Sc Microbiology",
-    "B.Sc Medical Laboratory Technology",
-    "B.Sc Anaesthesia & Operation Theatre Technology"
-  ],
-  "Parul College of Pharmacy": [
-    "B.Pharm",
-    "B.Pharm (Lateral Entry)",
-    "M.Pharm"
-  ],
-  "Parul College of Hotel Management": [
-    "BHMCT",
-    "B.Sc Hospitality",
-    "Diploma programmes"
-  ]
-};
-
-const SEMESTERS = [
-  "Semester 1",
-  "Semester 2",
-  "Semester 3",
-  "Semester 4",
-  "Semester 5",
-  "Semester 6",
-  "Semester 7",
-  "Semester 8",
-  "Completed"
-];
+import { VALID_COLLEGES, VALID_COURSES, VALID_SEMESTERS, COURSE_TO_COLLEGE } from '@/lib/constants/colleges';
 
 export default function CompleteProfilePage() {
   const { user, loading } = useAuth();
@@ -80,6 +27,8 @@ export default function CompleteProfilePage() {
 
   const isEditMode = user?.profileComplete ?? false;
 
+  const [accountStatus, setAccountStatus] = useState<string>('active');
+
   // Pre-populate fields from existing profile data when editing
   useEffect(() => {
     if (!isEditMode || profileLoaded) return;
@@ -94,6 +43,7 @@ export default function CompleteProfilePage() {
           setSemester(data.user.year || '');
           setEnrollmentNumber(data.user.enrollmentNumber || '');
           setUniversityId(data.user.universityId || '');
+          setAccountStatus(data.user.accountStatus || 'active');
         }
       } catch { /* non-critical */ }
       setProfileLoaded(true);
@@ -181,6 +131,12 @@ export default function CompleteProfilePage() {
         />
       </div>
 
+      {accountStatus === 'flagged' && (
+        <div className="mb-6 rounded-tile bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-amber-400 font-medium" role="alert">
+          ⚠️ Your account has been flagged by an administrator. Please review and update your details to restore your active status.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Read-only info & helpful text */}
         <div className="lg:col-span-1 space-y-6">
@@ -249,7 +205,7 @@ export default function CompleteProfilePage() {
                       className="flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Select a college</option>
-                      {Object.keys(COLLEGES).map(c => <option key={c} value={c}>{c}</option>)}
+                      {Array.from(VALID_COLLEGES).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                     {fieldErrors.college && <p className="text-[13px] font-medium text-red-500">{fieldErrors.college}</p>}
                   </div>
@@ -263,10 +219,12 @@ export default function CompleteProfilePage() {
                       disabled={!college}
                       className="flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="">Select a course</option>
-                      {college && COLLEGES[college as keyof typeof COLLEGES].map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="" disabled>Select Course</option>
+                      {Array.from(VALID_COURSES).filter(c => COURSE_TO_COLLEGE[c] === college).map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                     </select>
-                    {fieldErrors.course && <p className="text-[13px] font-medium text-red-500">{fieldErrors.course}</p>}
+                    {fieldErrors.course && <p className="text-xs text-magenta">{fieldErrors.course}</p>}
                   </div>
                 </div>
 
@@ -279,8 +237,10 @@ export default function CompleteProfilePage() {
                       onChange={(e) => setSemester(e.target.value)}
                       className="flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="">Select semester</option>
-                      {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                      <option value="" disabled>Select Semester</option>
+                      {Array.from(VALID_SEMESTERS).map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
                     {fieldErrors.semester && <p className="text-[13px] font-medium text-red-500">{fieldErrors.semester}</p>}
                   </div>

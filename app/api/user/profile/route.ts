@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { user, clearancePasses } from '@/lib/schema';
 import { updateProfileSchema } from '@/lib/validators';
@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
         passId: user.passId,
         enrollmentNumber: user.enrollmentNumber,
         universityId: user.universityId,
+        accountStatus: user.accountStatus,
+        adminNotes: user.adminNotes,
       })
       .from(user)
       .where(eq(user.id, userId))
@@ -79,11 +81,65 @@ export async function PATCH(request: NextRequest) {
       return errorResponse('Authentication required', 401);
     }
 
+    const userId = session.user.id;
+
+    // ── Check if user is banned ──
+    const [currentUser] = await db
+      .select({ accountStatus: user.accountStatus })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (currentUser?.accountStatus === 'banned') {
+      return errorResponse('Your account has been suspended. Contact an administrator.', 403);
+    }
+
     const parsed = await parseBody(request, updateProfileSchema);
     if (parsed.error) return parsed.error;
 
     const { data } = parsed;
-    const userId = session.user.id;
+
+    // ── Check enrollment number uniqueness if provided ──
+    if (data.enrollmentNumber !== undefined) {
+      const enrollmentTrimmed = data.enrollmentNumber.trim().toUpperCase();
+      if (enrollmentTrimmed) {
+        const [dupeEnrollment] = await db
+          .select({ id: user.id })
+          .from(user)
+          .where(
+            and(
+              eq(user.enrollmentNumber, enrollmentTrimmed),
+              ne(user.id, userId)
+            )
+          )
+          .limit(1);
+
+        if (dupeEnrollment) {
+          return errorResponse('This enrollment number is already registered to another account', 409, ['enrollmentNumber: Already in use']);
+        }
+      }
+    }
+
+    // ── Check university ID uniqueness if provided ──
+    if (data.universityId !== undefined) {
+      const universityIdTrimmed = data.universityId.trim();
+      if (universityIdTrimmed) {
+        const [dupeUnivId] = await db
+          .select({ id: user.id })
+          .from(user)
+          .where(
+            and(
+              eq(user.universityId, universityIdTrimmed),
+              ne(user.id, userId)
+            )
+          )
+          .limit(1);
+
+        if (dupeUnivId) {
+          return errorResponse('This university ID is already registered to another account', 409, ['universityId: Already in use']);
+        }
+      }
+    }
 
     // Build the update set from provided fields only
     const updateSet: Record<string, unknown> = { updatedAt: new Date() };

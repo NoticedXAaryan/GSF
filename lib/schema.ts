@@ -62,25 +62,37 @@ export const announcementPriorityEnum = pgEnum('announcement_priority', [
 // can reference them in relations and type-safe queries.
 // ────────────────────────────────────────────────────────────
 
-export const user = pgTable('user', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull().unique(),
-  emailVerified: boolean('email_verified').notNull().default(false),
-  image: text('image'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  // ── Extended fields ──
-  role: text('role').notNull().default('Attendee'),
-  phone: text('phone').default(''),
-  collegeDept: text('college_dept').default(''),
-  year: text('year').default(''),
-  organization: text('organization').default(''),
-  passId: text('pass_id').default(''),
-  profileComplete: boolean('profile_complete').default(false),
-  enrollmentNumber: text('enrollment_number').default(''),
-  universityId: text('university_id').default(''),
-});
+export const user = pgTable(
+  'user',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull().unique(),
+    emailVerified: boolean('email_verified').notNull().default(false),
+    image: text('image'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    // ── Extended fields ──
+    role: text('role').notNull().default('Attendee'),
+    phone: text('phone').default(''),
+    collegeDept: text('college_dept').default(''),
+    year: text('year').default(''),
+    organization: text('organization').default(''),
+    passId: text('pass_id').default(''),
+    profileComplete: boolean('profile_complete').default(false),
+    enrollmentNumber: text('enrollment_number').default(''),
+    universityId: text('university_id').default(''),
+    // ── Admin restriction fields ──
+    accountStatus: text('account_status').notNull().default('active'),
+    adminNotes: text('admin_notes').default(''),
+  },
+  (table) => [
+    uniqueIndex('idx_user_enrollment_number')
+      .on(table.enrollmentNumber),
+    uniqueIndex('idx_user_university_id')
+      .on(table.universityId),
+  ]
+);
 
 export const session = pgTable('session', {
   id: text('id').primaryKey(),

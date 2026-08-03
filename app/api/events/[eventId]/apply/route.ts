@@ -27,12 +27,23 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const { eventId } = await context.params;
     const uid = session.user.id;
 
-    // ── Verify profile is complete ──
+    // ── Verify profile is complete and account is active ──
     const [userData] = await db
-      .select({ profileComplete: user.profileComplete })
+      .select({
+        profileComplete: user.profileComplete,
+        accountStatus: user.accountStatus,
+      })
       .from(user)
       .where(eq(user.id, uid))
       .limit(1);
+
+    if (userData?.accountStatus === 'banned') {
+      return errorResponse('Your account has been suspended. Contact an administrator.', 403);
+    }
+
+    if (userData?.accountStatus === 'flagged') {
+      return errorResponse('Your account has been flagged. Please update your profile before applying.', 403);
+    }
 
     if (!userData?.profileComplete) {
       return errorResponse('Complete registration first', 400);

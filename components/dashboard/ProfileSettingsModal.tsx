@@ -29,55 +29,7 @@ interface ProfileData {
   passId: string;
 }
 
-const COLLEGES: Record<string, string[]> = {
-  "Parul College of Engineering and IT": [
-    "B.Tech Computer Science & Engineering",
-    "B.Tech AI & ML",
-    "B.Tech Cyber Security",
-    "B.Tech Data Science",
-    "BCA",
-    "BCA (Specializations)",
-    "MCA"
-  ],
-  "Parul College of Management Studies": [
-    "BBA",
-    "BBA (Finance)",
-    "BBA (Marketing)",
-    "MBA"
-  ],
-  "Parul College of Nursing": [
-    "GNM",
-    "B.Sc Nursing",
-    "M.Sc Nursing"
-  ],
-  "Parul College of Physiotherapy": [
-    "Bachelor of Physiotherapy (BPT)",
-    "MPT"
-  ],
-  "Parul College of Applied & Health Sciences": [
-    "B.Sc Biotechnology",
-    "B.Sc Microbiology",
-    "B.Sc Medical Laboratory Technology",
-    "B.Sc Anaesthesia & Operation Theatre Technology"
-  ],
-  "Parul College of Pharmacy": [
-    "B.Pharm",
-    "B.Pharm (Lateral Entry)",
-    "M.Pharm"
-  ],
-  "Parul College of Hotel Management": [
-    "BHMCT",
-    "B.Sc Hospitality",
-    "Diploma programmes"
-  ]
-};
-
-const SEMESTERS = [
-  "Semester 1", "Semester 2", "Semester 3", "Semester 4",
-  "Semester 5", "Semester 6", "Semester 7", "Semester 8",
-  "Completed"
-];
-
+import { VALID_COLLEGES, VALID_COURSES, VALID_SEMESTERS, COURSE_TO_COLLEGE } from '@/lib/constants/colleges';
 export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }: ProfileSettingsModalProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -210,7 +162,7 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
     }
   }
 
-  const availableCourses = editCollege && COLLEGES[editCollege] ? COLLEGES[editCollege] : [];
+
   const selectClass = "flex h-11 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg ring-offset-background placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
@@ -283,16 +235,12 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
                   value={editCollege}
                   onChange={(e) => {
                     setEditCollege(e.target.value);
-                    // Reset course if college changes and current course isn't in new college
-                    const newCourses = COLLEGES[e.target.value] || [];
-                    if (!newCourses.includes(editCourse)) {
-                      setEditCourse('');
-                    }
+                    setEditCourse('');
                   }}
                   className={selectClass}
                 >
                   <option value="">Select a college</option>
-                  {Object.keys(COLLEGES).map(c => <option key={c} value={c}>{c}</option>)}
+                  {Array.from(VALID_COLLEGES).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
 
@@ -306,7 +254,9 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
                   className={selectClass}
                 >
                   <option value="">Select a course</option>
-                  {availableCourses.map(c => <option key={c} value={c}>{c}</option>)}
+                  {Array.from(VALID_COURSES).filter(c => COURSE_TO_COLLEGE[c] === editCollege).map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </div>
 
@@ -319,7 +269,7 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
                   className={selectClass}
                 >
                   <option value="">Select semester</option>
-                  {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                  {Array.from(VALID_SEMESTERS).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 

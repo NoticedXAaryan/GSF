@@ -3,6 +3,12 @@
  * Every API route validates its input against these before touching the database.
  */
 import { z } from 'zod';
+import {
+  VALID_COLLEGES,
+  VALID_COURSES,
+  VALID_SEMESTERS,
+  COURSE_TO_COLLEGE,
+} from '@/lib/constants/colleges';
 
 // ── Phone validation ──
 const phoneRegex = /^\+?[1-9]\d{7,14}$/;
@@ -16,9 +22,21 @@ export const completeProfileSchema = z.object({
     .string()
     .min(10, 'Phone number must be at least 10 digits')
     .regex(phoneRegex, 'Invalid phone number format'),
-  college: z.string().min(1, 'College is required').max(150),
-  course: z.string().min(1, 'Course is required').max(150),
-  semester: z.string().min(1, 'Semester is required').max(50),
+  college: z
+    .string()
+    .min(1, 'College is required')
+    .max(150)
+    .refine((v) => VALID_COLLEGES.has(v), 'Invalid college selection'),
+  course: z
+    .string()
+    .min(1, 'Course is required')
+    .max(150)
+    .refine((v) => VALID_COURSES.has(v), 'Invalid course selection'),
+  semester: z
+    .string()
+    .min(1, 'Semester is required')
+    .max(50)
+    .refine((v) => VALID_SEMESTERS.has(v), 'Invalid semester selection'),
   enrollmentNumber: z
     .string()
     .min(1, 'Enrollment number is required')
@@ -29,7 +47,14 @@ export const completeProfileSchema = z.object({
     .min(1, 'University ID is required')
     .max(20)
     .regex(/^\d+$/, 'University ID must contain numbers only'),
-});
+}).refine(
+  (data) => {
+    // Cross-validate: the course must belong to the selected college
+    const expectedCollege = COURSE_TO_COLLEGE[data.course];
+    return !expectedCollege || expectedCollege === data.college;
+  },
+  { message: 'Selected course does not belong to the selected college', path: ['course'] }
+);
 
 export const updateProfileSchema = z.object({
   phone: z
@@ -37,9 +62,24 @@ export const updateProfileSchema = z.object({
     .min(10, 'Phone number must be at least 10 digits')
     .regex(phoneRegex, 'Invalid phone number format')
     .optional(),
-  college: z.string().min(1, 'College is required').max(150).optional(),
-  course: z.string().min(1, 'Course is required').max(150).optional(),
-  semester: z.string().min(1, 'Semester is required').max(50).optional(),
+  college: z
+    .string()
+    .min(1, 'College is required')
+    .max(150)
+    .refine((v) => VALID_COLLEGES.has(v), 'Invalid college selection')
+    .optional(),
+  course: z
+    .string()
+    .min(1, 'Course is required')
+    .max(150)
+    .refine((v) => VALID_COURSES.has(v), 'Invalid course selection')
+    .optional(),
+  semester: z
+    .string()
+    .min(1, 'Semester is required')
+    .max(50)
+    .refine((v) => VALID_SEMESTERS.has(v), 'Invalid semester selection')
+    .optional(),
   enrollmentNumber: z
     .string()
     .min(1, 'Enrollment number is required')

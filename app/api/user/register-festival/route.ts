@@ -29,12 +29,19 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    // ── Check if the user has completed their profile ──
+    // ── Check if the user has completed their profile and is not banned ──
     const [existingUser] = await db
-      .select({ profileComplete: user.profileComplete })
+      .select({
+        profileComplete: user.profileComplete,
+        accountStatus: user.accountStatus,
+      })
       .from(user)
       .where(eq(user.id, userId))
       .limit(1);
+
+    if (existingUser?.accountStatus === 'banned') {
+      return errorResponse('Your account has been suspended. Contact an administrator.', 403);
+    }
 
     if (!existingUser?.profileComplete) {
       return errorResponse('Profile must be completed first', 400);
