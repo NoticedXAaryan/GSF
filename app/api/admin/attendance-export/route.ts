@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { scanLogs, events } from '@/lib/schema';
+import { scanLogs, events, user } from '@/lib/schema';
 import { requireAdmin } from '@/lib/api-helpers';
 
 /**
@@ -38,10 +38,14 @@ export async function GET(request: NextRequest) {
 
     const eventName = event?.name || 'Unknown Event';
 
-    // Fetch all scan logs for this event where result is 'allowed'
+    // Fetch all scan logs for this event joined with user table
     const logs = await db
-      .select()
+      .select({
+        scanLog: scanLogs,
+        user: user,
+      })
       .from(scanLogs)
+      .leftJoin(user, eq(scanLogs.uid, user.id))
       .where(eq(scanLogs.eventId, eventId))
       .orderBy(desc(scanLogs.timestamp));
 
@@ -50,6 +54,14 @@ export async function GET(request: NextRequest) {
       'Pass ID',
       'User Name',
       'User ID',
+      'Email',
+      'Phone',
+      'College',
+      'Course',
+      'Semester',
+      'Enrollment Number',
+      'University ID',
+      'Account Status',
       'Event Name',
       'Scan Result',
       'Reason',
@@ -57,15 +69,23 @@ export async function GET(request: NextRequest) {
       'Timestamp',
     ];
 
-    const rows = logs.map((log) => [
-      log.passId,
-      log.userName,
-      log.uid,
-      log.eventName || eventName,
-      log.result,
-      log.reason || '',
-      log.scannedByUid,
-      new Date(log.timestamp).toISOString(),
+    const rows = logs.map(({ scanLog, user }) => [
+      scanLog.passId,
+      scanLog.userName,
+      scanLog.uid,
+      user?.email || '',
+      user?.phone || '',
+      user?.organization || '',
+      user?.collegeDept || '',
+      user?.year || '',
+      user?.enrollmentNumber || '',
+      user?.universityId || '',
+      user?.accountStatus || '',
+      scanLog.eventName || eventName,
+      scanLog.result,
+      scanLog.reason || '',
+      scanLog.scannedByUid,
+      new Date(scanLog.timestamp).toISOString(),
     ]);
 
     const csvContent = [

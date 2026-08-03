@@ -19,6 +19,16 @@ interface ScanResultData {
   result: "allowed" | "denied" | "already_checked_in";
   userName?: string;
   reason?: string;
+  userData?: {
+    name: string;
+    email: string;
+    phone: string;
+    college: string;
+    course: string;
+    enrollmentNumber: string;
+    universityId: string;
+    accountStatus: string;
+  };
 }
 
 interface ScanHistoryEntry {
@@ -31,6 +41,8 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResultData | null>(null);
+  const [pendingValidation, setPendingValidation] = useState<ScanResultData | null>(null);
+  const [currentQrToken, setCurrentQrToken] = useState<string>("");
   const [checkInCount, setCheckInCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,9 +92,10 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
   const handleScanResult = useCallback(
     async (decodedText: string) => {
       // Prevent multiple scans while processing or paused
-      if (loading || paused) return;
+      if (loading || paused || pendingValidation) return;
       setLoading(true);
       setError(null);
+      setCurrentQrToken(decodedText);
 
       try {
         const response = await fetch("/api/scan", {
@@ -91,6 +104,7 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
           body: JSON.stringify({
             eventId: selectedEventId,
             qrToken: decodedText,
+            action: 'validate',
           }),
         });
 
@@ -102,25 +116,35 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
           setScanResult(data);
           onScanResult?.(data);
           addToHistory(data);
+          setLoading(false);
           return;
         }
 
         const data = (await response.json()) as ScanResultData;
-        setScanResult(data);
-        onScanResult?.(data);
-        addToHistory(data);
-
-        if (data.result === "allowed") {
-          setCheckInCount((prev) => prev + 1);
+        
+        if (data.result === 'allowed') {
+          // Pause the scanner to show validation UI
+          setPaused(true);
+          setPendingValidation(data);
+          if (scannerRef.current) {
+            const scanner = scannerRef.current as { pause: (arg: boolean) => void };
+            if (typeof scanner.pause === 'function') {
+              scanner.pause(true);
+            }
+          }
+        } else {
+          // It was denied or already checked in, show standard result UI
+          setScanResult(data);
+          onScanResult?.(data);
+          addToHistory(data);
+          
+          setPaused(true);
+          pauseTimerRef.current = setTimeout(() => {
+            setPaused(false);
+            setScanResult(null);
+            pauseTimerRef.current = null;
+          }, 3000);
         }
-
-        // Auto-pause for 3 seconds so the volunteer can see the result
-        setPaused(true);
-        pauseTimerRef.current = setTimeout(() => {
-          setPaused(false);
-          setScanResult(null);
-          pauseTimerRef.current = null;
-        }, 3000);
       } catch {
         const data: ScanResultData = {
           result: "denied",
@@ -133,8 +157,81 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         setLoading(false);
       }
     },
-    [selectedEventId, loading, paused, onScanResult, addToHistory]
+    [selectedEventId, loading, paused, pendingValidation, onScanResult, addToHistory]
   );
+
+  const handleConfirmCheckin = async () => {
+    if (!currentQrToken || !pendingValidation) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: selectedEventId,
+          qrToken: currentQrToken,
+          action: 'confirm',
+        }),
+      });
+
+      if (!response.ok) {
+        const data: ScanResultData = {
+          result: "denied",
+          reason: `Server error (${response.status})`,
+        };
+        setScanResult(data);
+        onScanResult?.(data);
+        addToHistory(data);
+      } else {
+        const data = (await response.json()) as ScanResultData;
+        setScanResult(data);
+        onScanResult?.(data);
+        addToHistory(data);
+
+        if (data.result === "allowed") {
+          setCheckInCount((prev) => prev + 1);
+        }
+      }
+    } catch {
+      const data: ScanResultData = {
+        result: "denied",
+        reason: "Network error — check your connection",
+      };
+      setScanResult(data);
+      onScanResult?.(data);
+      addToHistory(data);
+    } finally {
+      setLoading(false);
+      setPendingValidation(null);
+      
+      if (scannerRef.current) {
+        const scanner = scannerRef.current as { resume: () => void };
+        if (typeof scanner.resume === 'function') {
+          scanner.resume();
+        }
+      }
+      
+      pauseTimerRef.current = setTimeout(() => {
+        setPaused(false);
+        setScanResult(null);
+        pauseTimerRef.current = null;
+      }, 3000);
+    }
+  };
+
+  const handleCancelCheckin = () => {
+    setPendingValidation(null);
+    setCurrentQrToken("");
+    setPaused(false);
+    if (scannerRef.current) {
+      const scanner = scannerRef.current as { resume: () => void };
+      if (typeof scanner.resume === 'function') {
+        scanner.resume();
+      }
+    }
+  };
 
 
 
@@ -318,10 +415,45 @@ export function QRScanner({ events, onScanResult }: QRScannerProps) {
         />
 
         {/* Paused indicator */}
-        {paused && scanning && (
+        {paused && scanning && !pendingValidation && (
           <p className="text-center text-xs font-medium text-fg-dim animate-neon-pulse">
             Resuming scanner in a moment…
           </p>
+        )}
+
+        {/* Pending Validation Display */}
+        {pendingValidation && pendingValidation.userData && (
+          <div className="animate-stamp-in rounded-bento border border-lime/30 bg-panel-alt p-4">
+            <h4 className="mb-3 text-sm font-semibold text-fg">Attendee Validation</h4>
+            <div className="space-y-2 mb-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-fg-dim">Name</span>
+                <span className="text-sm text-fg">{pendingValidation.userData.name}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-fg-dim">College & Course</span>
+                <span className="text-sm text-fg">{pendingValidation.userData.college} — {pendingValidation.userData.course}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-fg-dim">Enrollment No.</span>
+                  <span className="text-sm text-fg font-mono">{pendingValidation.userData.enrollmentNumber || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-fg-dim">Mobile</span>
+                  <span className="text-sm text-fg">{pendingValidation.userData.phone || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="primary" className="flex-1" onClick={handleConfirmCheckin} disabled={loading}>
+                Confirm Check-in
+              </Button>
+              <Button variant="secondary" onClick={handleCancelCheckin} disabled={loading}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         )}
 
         {/* Scan result display */}

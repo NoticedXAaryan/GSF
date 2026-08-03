@@ -122,7 +122,7 @@ export default function CompleteProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <div className="mb-8">
         <PageHeader
           eyebrow={isEditMode ? 'Profile' : 'Account setup'}
@@ -137,9 +137,9 @@ export default function CompleteProfilePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Read-only info & helpful text */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-4 space-y-6">
           <Card>
             <CardHeader>
               <h3 className="text-base font-medium text-fg">Account Details</h3>
@@ -167,7 +167,7 @@ export default function CompleteProfilePage() {
         </div>
 
         {/* Right Column: Editable Form */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-8">
           <Card>
             <CardHeader>
               <h2 className="text-base font-medium text-fg">Academic Information</h2>
@@ -268,9 +268,30 @@ export default function CompleteProfilePage() {
                   maxLength={20}
                 />
 
-                <div className="pt-4 border-t border-line mt-6">
+                <div className="pt-4 border-t border-line mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Button type="submit" loading={submitting} className="w-full sm:w-auto px-8">
                     {isEditMode ? 'Update Profile' : 'Complete Profile'}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="secondary" 
+                    className="w-full sm:w-auto px-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 sm:hidden"
+                    onClick={async () => {
+                      try {
+                        const { authClient } = await import('@/lib/auth-client');
+                        await authClient.signOut({
+                          fetchOptions: {
+                            onSuccess: () => {
+                              window.location.href = '/login';
+                            }
+                          }
+                        });
+                      } catch (err) {
+                        console.error('Sign out failed', err);
+                      }
+                    }}
+                  >
+                    Sign Out
                   </Button>
                 </div>
               </form>

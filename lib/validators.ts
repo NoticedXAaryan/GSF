@@ -137,6 +137,7 @@ export const scanSchema = z
     eventId: z.string().min(1, 'Event ID is required'),
     passId: z.string().optional(),
     qrToken: z.string().optional(),
+    action: z.enum(['validate', 'confirm']).optional().default('validate'),
   })
   .refine((data) => data.passId || data.qrToken, {
     message: 'Either passId or qrToken is required',

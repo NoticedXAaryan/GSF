@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { clearancePasses, events, applications, scanLogs } from '@/lib/schema';
+import { clearancePasses, events, applications, scanLogs, user } from '@/lib/schema';
 import { scanSchema } from '@/lib/validators';
 import {
   jsonResponse,
@@ -13,7 +13,6 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    // Only volunteers, leads, or admins can scan
     const session = await requireVolunteer(request.headers);
     if (!session) {
       return errorResponse('Unauthorized. Volunteer access required.', 403);
@@ -22,7 +21,7 @@ export async function POST(request: NextRequest) {
     const parsed = await parseBody(request, scanSchema);
     if (parsed.error) return parsed.error;
 
-    const { eventId, passId, qrToken } = parsed.data;
+    const { eventId, passId, qrToken, action } = parsed.data;
     const scannedByUid = session.user.id;
 
     // ── Look up the clearance pass ──
@@ -39,7 +38,6 @@ export async function POST(request: NextRequest) {
         )
         .limit(1);
 
-      // If not found with revoked=false, check if it exists but is revoked
       if (!passData) {
         const [revokedPass] = await db
           .select()
@@ -48,39 +46,16 @@ export async function POST(request: NextRequest) {
           .limit(1);
 
         if (revokedPass && revokedPass.revoked) {
-          // Pass exists but is revoked
-          await logScan({
-            passId: revokedPass.passId,
-            uid: revokedPass.uid,
-            userName: revokedPass.userName,
-            scannedByUid,
-            eventId,
-            eventName: '',
-            result: 'denied',
-            reason: 'Pass revoked',
-          });
-          return jsonResponse({
-            result: 'denied',
-            reason: 'Pass revoked',
-            userName: revokedPass.userName,
-          });
+          if (action === 'confirm') {
+            await logScan({ passId: revokedPass.passId, uid: revokedPass.uid, userName: revokedPass.userName, scannedByUid, eventId, eventName: '', result: 'denied', reason: 'Pass revoked' });
+          }
+          return jsonResponse({ result: 'denied', reason: 'Pass revoked', userName: revokedPass.userName });
         }
 
-        // Pass does not exist at all — QR cannot be decoded / not found
-        await logScan({
-          passId: '',
-          uid: '',
-          userName: '',
-          scannedByUid,
-          eventId,
-          eventName: '',
-          result: 'denied',
-          reason: 'Pass not found or invalid code',
-        });
-        return jsonResponse({
-          result: 'denied',
-          reason: 'Pass not found or invalid code',
-        });
+        if (action === 'confirm') {
+          await logScan({ passId: '', uid: '', userName: '', scannedByUid, eventId, eventName: '', result: 'denied', reason: 'Pass not found or invalid code' });
+        }
+        return jsonResponse({ result: 'denied', reason: 'Pass not found or invalid code' });
       }
     } else if (passId) {
       [passData] = await db
@@ -90,62 +65,64 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (!passData) {
-        await logScan({
-          passId: passId.trim().toUpperCase(),
-          uid: '',
-          userName: '',
-          scannedByUid,
-          eventId,
-          eventName: '',
-          result: 'denied',
-          reason: 'Pass not found or invalid code',
-        });
-        return jsonResponse({
-          result: 'denied',
-          reason: 'Pass not found or invalid code',
-        });
+        if (action === 'confirm') {
+          await logScan({ passId: passId.trim().toUpperCase(), uid: '', userName: '', scannedByUid, eventId, eventName: '', result: 'denied', reason: 'Pass not found or invalid code' });
+        }
+        return jsonResponse({ result: 'denied', reason: 'Pass not found or invalid code' });
       }
 
-      // Check if pass is revoked (for passId lookups)
       if (passData.revoked) {
-        await logScan({
-          passId: passData.passId,
-          uid: passData.uid,
-          userName: passData.userName,
-          scannedByUid,
-          eventId,
-          eventName: '',
-          result: 'denied',
-          reason: 'Pass revoked',
-        });
-        return jsonResponse({
-          result: 'denied',
-          reason: 'Pass revoked',
-          userName: passData.userName,
-        });
+        if (action === 'confirm') {
+          await logScan({ passId: passData.passId, uid: passData.uid, userName: passData.userName, scannedByUid, eventId, eventName: '', result: 'denied', reason: 'Pass revoked' });
+        }
+        return jsonResponse({ result: 'denied', reason: 'Pass revoked', userName: passData.userName });
       }
     }
 
     if (!passData) {
-      await logScan({
-        passId: '',
-        uid: '',
-        userName: '',
-        scannedByUid,
-        eventId,
-        eventName: '',
-        result: 'denied',
-        reason: 'Pass not found or invalid code',
-      });
-      return jsonResponse({
-        result: 'denied',
-        reason: 'Pass not found or invalid code',
-      });
+      if (action === 'confirm') {
+        await logScan({ passId: '', uid: '', userName: '', scannedByUid, eventId, eventName: '', result: 'denied', reason: 'Pass not found or invalid code' });
+      }
+      return jsonResponse({ result: 'denied', reason: 'Pass not found or invalid code' });
     }
 
     const resolvedPassId = passData.passId;
     const attendeeUid = passData.uid;
     const attendeeName = passData.userName;
+
+    // ── Fetch attendee user details for advanced validation ──
+    const [attendeeUser] = await db
+      .select({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        organization: user.organization,
+        collegeDept: user.collegeDept,
+        enrollmentNumber: user.enrollmentNumber,
+        universityId: user.universityId,
+        accountStatus: user.accountStatus
+      })
+      .from(user)
+      .where(eq(user.id, attendeeUid))
+      .limit(1);
+
+    if (attendeeUser?.accountStatus === 'banned') {
+      if (action === 'confirm') {
+        await logScan({ passId: resolvedPassId, uid: attendeeUid, userName: attendeeName, scannedByUid, eventId, eventName: '', result: 'denied', reason: 'Account banned' });
+      }
+      return jsonResponse({ result: 'denied', reason: 'Account banned', userName: attendeeName });
+    }
+
+    const userData = {
+      name: attendeeUser?.name || attendeeName,
+      email: attendeeUser?.email || '',
+      phone: attendeeUser?.phone || '',
+      college: attendeeUser?.organization || '',
+      course: attendeeUser?.collegeDept || '',
+      enrollmentNumber: attendeeUser?.enrollmentNumber || '',
+      universityId: attendeeUser?.universityId || '',
+      accountStatus: attendeeUser?.accountStatus || 'active'
+    };
 
     // ── Fetch event details ──
     const [event] = await db
@@ -157,7 +134,7 @@ export async function POST(request: NextRequest) {
     const eventName = event?.name ?? 'Unknown Event';
     const eventType = event?.type ?? 'open';
 
-    // ── Check if already checked in (scan_logs with same uid + eventId + result "allowed") ──
+    // ── Check if already checked in ──
     const [existingCheck] = await db
       .select({ id: scanLogs.id })
       .from(scanLogs)
@@ -171,25 +148,16 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (existingCheck) {
-      await logScan({
-        passId: resolvedPassId,
-        uid: attendeeUid,
-        userName: attendeeName,
-        scannedByUid,
-        eventId,
-        eventName,
-        result: 'already_checked_in',
-        reason: 'Already checked in',
-      });
-      return jsonResponse({
-        result: 'already_checked_in',
-        userName: attendeeName,
-      });
+      if (action === 'confirm') {
+        await logScan({ passId: resolvedPassId, uid: attendeeUid, userName: attendeeName, scannedByUid, eventId, eventName, result: 'already_checked_in', reason: 'Already checked in' });
+      }
+      return jsonResponse({ result: 'already_checked_in', userName: attendeeName, userData });
     }
 
     // ── For non-open events: verify user has an accepted application ──
+    let application = null;
     if (eventType !== 'open') {
-      const [application] = await db
+      [application] = await db
         .select()
         .from(applications)
         .where(
@@ -202,75 +170,40 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (!application) {
-        await logScan({
-          passId: resolvedPassId,
-          uid: attendeeUid,
-          userName: attendeeName,
-          scannedByUid,
-          eventId,
-          eventName,
-          result: 'denied',
-          reason: 'Not registered or not accepted for this event',
-        });
-        return jsonResponse({
-          result: 'denied',
-          reason: 'Not registered or not accepted for this event',
-          userName: attendeeName,
-        });
+        if (action === 'confirm') {
+          await logScan({ passId: resolvedPassId, uid: attendeeUid, userName: attendeeName, scannedByUid, eventId, eventName, result: 'denied', reason: 'Not registered or not accepted' });
+        }
+        return jsonResponse({ result: 'denied', reason: 'Not registered or not accepted for this event', userName: attendeeName, userData });
       }
+    }
 
-      // ── Transaction: mark checked in + log ──
+    // ── Handle validate vs confirm ──
+    if (action === 'validate') {
+      return jsonResponse({ result: 'allowed', userName: attendeeName, userData });
+    }
+
+    // action === 'confirm'
+    if (application) {
       await db.transaction(async (tx) => {
         await tx
           .update(applications)
-          .set({
-            checkedIn: true,
-            checkedInAt: Date.now(),
-            checkedInBy: scannedByUid,
-          })
+          .set({ checkedIn: true, checkedInAt: Date.now(), checkedInBy: scannedByUid })
           .where(eq(applications.id, application.id));
 
         await tx.insert(scanLogs).values({
-          id: generateId(),
-          passId: resolvedPassId,
-          uid: attendeeUid,
-          userName: attendeeName,
-          scannedByUid,
-          eventId,
-          eventName,
-          result: 'allowed',
-          reason: '',
-          timestamp: Date.now(),
+          id: generateId(), passId: resolvedPassId, uid: attendeeUid, userName: attendeeName, scannedByUid, eventId, eventName, result: 'allowed', reason: '', timestamp: Date.now(),
         });
       });
-
-      return jsonResponse({
-        result: 'allowed',
-        userName: attendeeName,
+    } else {
+      await db.transaction(async (tx) => {
+        await tx.insert(scanLogs).values({
+          id: generateId(), passId: resolvedPassId, uid: attendeeUid, userName: attendeeName, scannedByUid, eventId, eventName, result: 'allowed', reason: '', timestamp: Date.now(),
+        });
       });
     }
 
-    // ── Open events: allow with valid pass (no application needed) ──
-    // Wrap in transaction for consistency
-    await db.transaction(async (tx) => {
-      await tx.insert(scanLogs).values({
-        id: generateId(),
-        passId: resolvedPassId,
-        uid: attendeeUid,
-        userName: attendeeName,
-        scannedByUid,
-        eventId,
-        eventName,
-        result: 'allowed',
-        reason: '',
-        timestamp: Date.now(),
-      });
-    });
+    return jsonResponse({ result: 'allowed', userName: attendeeName, userData });
 
-    return jsonResponse({
-      result: 'allowed',
-      userName: attendeeName,
-    });
   } catch (error) {
     console.error('[POST /api/scan]', error);
     return errorResponse('Internal server error', 500);
