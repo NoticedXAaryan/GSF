@@ -128,7 +128,18 @@ export function SiteFooter() {
 
             <div className="mt-6 flex flex-col items-center gap-2 text-sm text-ink-muted tablet:flex-row tablet:justify-between">
               <p>© 2026 Goa Startup Festival. All rights reserved.</p>
-              <p>Built by the PIERC team for Goa&apos;s startup community.</p>
+              <p>
+                Built by the Epic Team &{" "}
+                <a
+                  href="https://www.linkedin.com/in/NoticedXAAryan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-ink hover:text-primary transition-colors"
+                >
+                  Aaryan Kumar Tiwari
+                </a>{" "}
+                for Goa&apos;s startup community.
+              </p>
             </div>
           </div>
 

@@ -102,7 +102,6 @@ describe("SiteHeader – Desktop Link Inventory", () => {
       { label: "About", href: "#about" },
       { label: "Highlights", href: "#highlights" },
       { label: "Schedule", href: "#schedule" },
-      { label: "Speakers", href: "#speakers" },
       { label: "FAQ", href: "#faq" },
     ];
 
@@ -551,8 +550,8 @@ describe("SiteHeader – Offset Navigation", () => {
   it("header is 80px tall (h-20 class) for offset clearance", () => {
     setupBrowserMocks();
     const { container } = render(<SiteHeader viewer={anonymousViewer} />);
-    const header = container.querySelector("header");
-    expect(header?.className).toMatch(/h-20/);
+    const innerContainer = container.querySelector(".site-container");
+    expect(innerContainer?.className).toMatch(/h-20/);
   });
 
   it("header is sticky positioned", () => {

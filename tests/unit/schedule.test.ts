@@ -140,7 +140,7 @@ describe("event-card projection", () => {
     ["open", "Open"],
     ["registration", "Registration"],
     ["restricted", "Restricted"],
-    ["shortlisted", "Shortlisted"],
+    ["shortlisted", "Apply to Pitch"],
   ] as const)("formats %s as %s", (type, label) => {
     expect(formatEventType(type)).toBe(label);
   });

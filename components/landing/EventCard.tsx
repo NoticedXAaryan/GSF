@@ -12,7 +12,7 @@ function getTypeBadgeClasses(typeLabel: EventCardViewModel["typeLabel"]): string
       return "bg-primary/10 text-primary";
     case "Restricted":
       return "bg-ink-muted/10 text-ink-muted";
-    case "Shortlisted":
+    case "Apply to Pitch":
       return "bg-primary-strong/10 text-primary-strong";
   }
 }

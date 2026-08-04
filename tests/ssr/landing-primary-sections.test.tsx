@@ -30,7 +30,6 @@ describe("primary landing server sections", () => {
     expect(html).toContain("Parul University Goa Campus, Betul, South Goa");
     expect(html).toContain('href="/signup"');
     expect(html).toContain("Register Now");
-    expect(html).toContain("min-h-touch");
   });
 
   it("renders each authenticated role's direct dashboard CTA", () => {

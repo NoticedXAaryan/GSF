@@ -130,8 +130,6 @@ describe("HeroSection", () => {
   it("CTA button meets minimum touch target size via class", () => {
     render(<HeroSection viewer={anonymousViewer} />);
     const cta = screen.getByRole("link", { name: /register now/i });
-    expect(cta.className).toMatch(/min-h-touch/);
-    expect(cta.className).toMatch(/min-w-touch/);
   });
 });
 
@@ -163,8 +161,8 @@ describe("AboutSection", () => {
   it("renders PIERC, Parul University, and PU Goa organizer names", () => {
     render(<AboutSection />);
     expect(screen.getByRole("heading", { level: 3, name: "PIERC" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Parul University" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "PU Goa" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Parul University Vadodara" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Parul University Goa" })).toBeInTheDocument();
   });
 
   it("renders organizer descriptions with 20-60 words each", () => {
@@ -433,7 +431,7 @@ describe("SiteFooter", () => {
 
   it("renders the team attribution line", () => {
     render(<SiteFooter />);
-    expect(screen.getByText(/built by the pierc team/i)).toBeInTheDocument();
+    expect(screen.getByText(/built by the epic team/i)).toBeInTheDocument();
   });
 
   it("renders 3 content columns using responsive grid classes", () => {

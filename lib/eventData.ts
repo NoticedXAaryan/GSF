@@ -362,7 +362,7 @@ export const allEvents: EventItem[] = [
     registrationLink: 'https://forms.gle/ZPq53AKzwjJ6Zo2ZA',
     brochureLink: null,
     isRegisterable: true,
-    description: 'Shortlisted teams pitch their startup ideas to a panel of expert judges from PIERC and Startup Studios for a chance to win from the prize pool.',
+    description: 'Participating teams pitch their startup ideas to a panel of expert judges from PIERC and Startup Studios for a chance to win from the prize pool.',
   },
 
   // ─── Sr. 44: Masterclass Session IV ────────────────────────────────────

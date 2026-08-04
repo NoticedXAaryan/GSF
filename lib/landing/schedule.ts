@@ -23,7 +23,7 @@ export interface EventCardViewModel {
   name: string;
   timeRange: string;
   venue: string;
-  typeLabel: "Open" | "Registration" | "Restricted" | "Shortlisted";
+  typeLabel: "Open" | "Registration" | "Restricted" | "Apply to Pitch";
   coordinatorName: string;
   registrationStatus: RegistrationStatus | null;
 }
@@ -227,7 +227,7 @@ const EVENT_TYPE_LABELS: Record<EventType, EventCardViewModel["typeLabel"]> = {
   open: "Open",
   registration: "Registration",
   restricted: "Restricted",
-  shortlisted: "Shortlisted",
+  shortlisted: "Apply to Pitch",
 };
 
 export function formatEventType(type: EventType): EventCardViewModel["typeLabel"] {

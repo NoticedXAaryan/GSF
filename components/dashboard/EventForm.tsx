@@ -34,7 +34,7 @@ const EVENT_TYPE_OPTIONS = [
   { value: "open", label: "Open" },
   { value: "registration", label: "Registration" },
   { value: "restricted", label: "Restricted" },
-  { value: "shortlisted", label: "Shortlisted" },
+  { value: "shortlisted", label: "Apply to Pitch" },
 ];
 
 const DAY_OPTIONS = [
@@ -362,7 +362,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             </span>
             <span className="mt-0.5 block text-xs text-fg-dim">
               {type === "shortlisted"
-                ? 'Always on for "Shortlisted" events.'
+                ? 'Always on for "Apply to Pitch" events.'
                 : "Applicants land as Pending and you accept or reject each one. Leave off to auto-accept until capacity is full."}
             </span>
           </span>

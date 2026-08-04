@@ -62,6 +62,6 @@ describe("SponsorsSection and SiteFooter", () => {
     expect(html).toContain("Parul University Goa");
     expect(html).toContain("Betul, South Goa");
     expect(html).toContain("© 2026 Goa Startup Festival. All rights reserved.");
-    expect(html).toContain("Built by the PIERC team for Goa&#x27;s startup community.");
+    expect(html).toContain("Built by the Epic Team");
   });
 });

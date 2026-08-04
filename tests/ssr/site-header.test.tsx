@@ -27,12 +27,10 @@ describe("SiteHeader server-rendered shell", () => {
     expect(html).toContain('href="#about"');
     expect(html).toContain('href="#highlights"');
     expect(html).toContain('href="#schedule"');
-    expect(html).toContain('href="#speakers"');
     expect(html).toContain('href="#faq"');
     expect(html).toContain("About");
     expect(html).toContain("Highlights");
     expect(html).toContain("Schedule");
-    expect(html).toContain("Speakers");
     expect(html).toContain("FAQ");
   });
 

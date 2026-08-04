@@ -20,7 +20,6 @@ import { FaqAccordion } from "@/components/landing/FaqAccordion";
 import { CtaBand } from "@/components/landing/CtaBand";
 import { SiteFooter } from "@/components/landing/SiteFooter";
 import { MotionProvider } from "@/components/landing/MotionProvider";
-import { Reveal } from "@/components/landing/Reveal";
 
 /**
  * Root landing page — async Server Component.
@@ -51,38 +50,19 @@ export default async function Page() {
         <HeroSection viewer={viewer} />
 
         <MotionProvider>
-          <Reveal>
-            <AboutSection />
-          </Reveal>
-
-          <Reveal>
-            <LandingHighlights />
-          </Reveal>
-
-          <Reveal>
-            <HighlightsSection />
-          </Reveal>
-
-          <Reveal>
-            <AudienceSection />
-          </Reveal>
-
-          <Reveal>
-            <ScheduleSection schedule={schedule} />
-          </Reveal>
+          <AboutSection />
+          <LandingHighlights />
+          <HighlightsSection />
+          <AudienceSection />
+          <ScheduleSection schedule={schedule} />
 
           {/* SpeakersSection — commented out for future enablement
-          <Reveal>
-            <SpeakersSection speakers={FESTIVAL_SPEAKERS} />
-          </Reveal>
+          <SpeakersSection speakers={FESTIVAL_SPEAKERS} />
           */}
 
-          <Reveal>
-            <SponsorsSection />
-          </Reveal>
+          <SponsorsSection />
 
-          <Reveal>
-            <section
+          <section
               id="faq"
               aria-labelledby="faq-title"
               className="relative overflow-hidden bg-canvas section-padding"
@@ -129,11 +109,8 @@ export default async function Page() {
                 </div>
               </div>
             </section>
-          </Reveal>
 
-          <Reveal>
-            <CtaBand viewer={viewer} />
-          </Reveal>
+          <CtaBand viewer={viewer} />
         </MotionProvider>
       </main>
       <SiteFooter />

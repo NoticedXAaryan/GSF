@@ -21,7 +21,7 @@ import {
  * `Restricted`, or `Shortlisted`).
  */
 
-const ALLOWED_DISPLAY_TYPES = ["Open", "Registration", "Restricted", "Shortlisted"] as const;
+const ALLOWED_DISPLAY_TYPES = ["Open", "Registration", "Restricted", "Apply to Pitch"] as const;
 const TIME_RANGE_PATTERN = /^\d{2}:\d{2} – \d{2}:\d{2}$/;
 
 const eventDayArb: fc.Arbitrary<EventDay> = fc.constantFrom(1 as EventDay, 2 as EventDay);
@@ -98,7 +98,7 @@ describe("Property 7: Event-card projection preserves required public informatio
     );
   });
 
-  it("produces exactly one allowed display type from the set {Open, Registration, Restricted, Shortlisted}", () => {
+  it("produces exactly one allowed display type from the set {Open, Registration, Restricted, Apply to Pitch}", () => {
     fc.assert(
       fc.property(scheduleEventArb, (event) => {
         const card = projectEventCard(event);
@@ -123,7 +123,7 @@ describe("Property 7: Event-card projection preserves required public informatio
           open: "Open",
           registration: "Registration",
           restricted: "Restricted",
-          shortlisted: "Shortlisted",
+          shortlisted: "Apply to Pitch",
         };
 
         expect(card.typeLabel).toBe(expectedMapping[event.type]);

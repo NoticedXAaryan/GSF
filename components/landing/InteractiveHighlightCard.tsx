@@ -16,9 +16,6 @@ export function InteractiveHighlightCard({ highlight, className = "", delay = 0 
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay }}
       whileHover={{ scale: 0.98 }}
       className={`group relative overflow-hidden rounded-[2rem] border p-8 shadow-sm transition-all hover:shadow-xl ${

@@ -29,7 +29,7 @@ function getTypeBadge(type: string): { bg: string; label: string } {
   switch (type) {
     case "open": return { bg: "bg-sky-500/10 text-sky-500 border-sky-500/20", label: "Open" };
     case "registration": return { bg: "bg-accent/10 text-accent border-accent/20", label: "Registration" };
-    case "shortlisted": return { bg: "bg-pink-500/10 text-pink-500 border-pink-500/20", label: "Shortlisted" };
+    case "shortlisted": return { bg: "bg-pink-500/10 text-pink-500 border-pink-500/20", label: "Apply to Pitch" };
     case "restricted": return { bg: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20", label: "Restricted" };
     default: return { bg: "bg-surface-alt/50 text-ink-muted border-surface-alt", label: type };
   }

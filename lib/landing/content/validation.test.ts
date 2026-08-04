@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { LucideIcon } from "lucide-react";
 
-import type { LandingContent } from "./contracts";
+import type { LandingContent, RequiredHighlightTitle } from "./contracts";
 import {
   countCharacters,
   countWords,
@@ -33,8 +33,8 @@ function validContent(): LandingContent {
     aboutDescription: words(30),
     organizers: [
       { name: "PIERC", description: words(20) },
-      { name: "Parul University", description: words(20) },
-      { name: "PU Goa", description: words(20) },
+      { name: "Parul University Vadodara", description: words(20) },
+      { name: "Parul University Goa", description: words(20) },
     ],
     statistics: [
       { label: "Startups Incubated", value: "300+" },

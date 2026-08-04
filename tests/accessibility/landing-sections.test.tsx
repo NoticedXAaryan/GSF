@@ -130,7 +130,7 @@ describe("Landing section accessibility scans", () => {
   it("SponsorsSection has no accessibility violations", async () => {
     const { container } = render(
       <main>
-        <SponsorsSection tiers={populatedTiers} />
+        <SponsorsSection />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();
@@ -148,7 +148,7 @@ describe("Landing section accessibility scans", () => {
         <AboutSection />
         <HighlightsSection />
         <SpeakersSection speakers={FESTIVAL_SPEAKERS} />
-        <SponsorsSection tiers={populatedTiers} />
+        <SponsorsSection />
         <SiteFooter />
       </main>,
     );

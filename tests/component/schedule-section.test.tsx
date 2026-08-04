@@ -200,7 +200,7 @@ describe("EventCard", () => {
 
     render(<EventCard event={viewModel} />);
 
-    expect(screen.getByText("Shortlisted")).toBeInTheDocument();
+    expect(screen.getByText("Apply to Pitch")).toBeInTheDocument();
     expect(screen.getByText("Open")).toBeInTheDocument();
   });
 
