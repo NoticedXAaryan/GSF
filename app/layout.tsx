@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Goa Startup Festival 2026',
     description: 'Join the biggest startup movement at Parul University Goa Campus.',
-    url: 'https://goastartupfestival.com',
+    url: 'https://gsf.goa.paruluniversity.ac.in',
     siteName: 'Goa Startup Festival 2026',
     images: [
       {

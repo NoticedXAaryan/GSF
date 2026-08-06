@@ -3,19 +3,19 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: 'https://goastartupfestival.com',
+      url: 'https://gsf.goa.paruluniversity.ac.in',
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
-      url: 'https://goastartupfestival.com/login',
+      url: 'https://gsf.goa.paruluniversity.ac.in/login',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: 'https://goastartupfestival.com/signup',
+      url: 'https://gsf.goa.paruluniversity.ac.in/signup',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,

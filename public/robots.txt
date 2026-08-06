@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://goastartupfestival.com/sitemap.xml
+Sitemap: https://gsf.goa.paruluniversity.ac.in/sitemap.xml
