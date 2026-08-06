@@ -62,7 +62,7 @@ export function CtaBand({ viewer }: CtaBandProps) {
         <div className="flex w-full flex-col items-center gap-4 tablet:w-auto tablet:flex-row desktop:flex-col desktop:items-stretch">
           <Link
             href={cta.href}
-            className="group inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-xl bg-surface px-8 py-5 text-xl font-extrabold text-primary shadow-2xl transition-all hover:scale-105 hover:bg-accent hover:text-ink tablet:w-auto desktop:w-full"
+            className="group inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-xl bg-surface px-8 py-5 text-xl font-extrabold text-primary shadow-2xl transition-colors hover:bg-accent hover:text-ink tablet:w-auto desktop:w-full"
           >
             {cta.label}
             <ArrowRight

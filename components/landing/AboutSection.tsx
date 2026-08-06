@@ -13,13 +13,13 @@ export function AboutSection() {
       
       {/* Decorative Stars Imprint */}
       <div className="absolute right-[10%] top-20 hidden desktop:flex gap-6 opacity-10 mix-blend-overlay pointer-events-none">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+        <svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
           <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="currentColor"/>
         </svg>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white mt-12">
+        <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white mt-12">
           <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="currentColor"/>
         </svg>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white -mt-4">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white -mt-4">
           <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="currentColor"/>
         </svg>
       </div>
@@ -39,11 +39,11 @@ export function AboutSection() {
           {FESTIVAL_ORGANIZERS.map((organizer) => (
             <article
               key={organizer.name}
-              className="group relative flex flex-col rounded-2xl border border-amber-300 bg-gradient-to-br from-[#FFE38B] to-[#F2B022] p-8 shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:border-amber-400"
+              className="group relative flex flex-col rounded-2xl border border-amber-300 bg-gradient-to-br from-[#FFE38B] to-[#F2B022] p-8 shadow-lg transition-colors hover:border-amber-400"
             >
               <div className="mb-8 flex h-16 items-center">
                 {organizer.logoUrl ? (
-                  <img src={organizer.logoUrl} alt={`${organizer.name} logo`} className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
+                  <img src={organizer.logoUrl} alt={`${organizer.name} logo`} className="h-full w-auto object-contain" />
                 ) : (
                   <h3 className="font-bold text-slate-900 text-xl">{organizer.name}</h3>
                 )}

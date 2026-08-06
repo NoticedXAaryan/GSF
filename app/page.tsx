@@ -67,9 +67,7 @@ export default async function Page() {
               aria-labelledby="faq-title"
               className="relative overflow-hidden bg-canvas section-padding"
             >
-              {/* Decorative Ambient Background Glows */}
-              <div aria-hidden="true" className="absolute -top-[30%] -right-[10%] z-0 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
-              <div aria-hidden="true" className="absolute -bottom-[20%] -left-[10%] z-0 h-[500px] w-[500px] rounded-full bg-accent/5 blur-[100px]" />
+              {/* Decorative Ambient Background Glows Removed for Cleaner Aesthetics */}
 
               <div className="site-container relative z-10">
                 <div className="grid grid-cols-1 gap-12 desktop:grid-cols-12 desktop:gap-8">

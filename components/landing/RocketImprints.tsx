@@ -95,6 +95,7 @@ function FlyingRocket({
           strokeLinecap="round"
           strokeLinejoin="round"
           className="h-24 w-24 tablet:h-32 tablet:w-32"
+          aria-hidden="true"
         >
           {/* Cloud Trail */}
           <Cloud index={0} delay={0} xOffset={8} />

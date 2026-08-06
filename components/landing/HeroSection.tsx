@@ -161,6 +161,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
               style={{ willChange: "transform", overflow: "visible" }}
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
               <defs>
                 <linearGradient id="rocketBody" x1="128" y1="16" x2="128" y2="196" gradientUnits="userSpaceOnUse">
@@ -243,7 +244,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
                 <li key={track.label}>
                   <a
                     href={track.href}
-                    className="inline-flex items-center rounded-full border border-surface/20 bg-primary-strong/30 backdrop-blur-md px-5 py-2.5 text-sm font-semibold text-surface transition-all hover:bg-surface hover:text-primary shadow-sm"
+                    className="inline-flex items-center rounded-full border border-surface/20 bg-primary-strong/30 backdrop-blur-md px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-surface hover:text-primary shadow-sm"
                   >
                     {track.label}
                   </a>
@@ -268,7 +269,7 @@ export function HeroSection({ viewer }: HeroSectionProps) {
             <div className="flex flex-col w-full desktop:w-auto gap-4">
               <Link
                 href={cta.href}
-                className="group w-full inline-flex items-center justify-center gap-3 rounded-full bg-surface px-8 py-4 text-lg font-extrabold text-primary transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                className="group w-full inline-flex items-center justify-center gap-3 rounded-full bg-surface px-8 py-4 text-lg font-extrabold text-primary transition-colors hover:bg-surface-alt shadow-[0_0_20px_rgba(255,255,255,0.2)]"
               >
                 {cta.label}
                 <ArrowRight aria-hidden="true" size={20} className="transition-transform group-hover:translate-x-1" />

@@ -20,10 +20,9 @@ export function SiteFooter() {
       <div className="site-container">
         <div className="relative overflow-hidden rounded-md bg-canvas bg-noise shadow-lg">
           <div className="px-6 pt-12 pb-8 tablet:px-12 desktop:pt-16">
-            {/* Three content columns */}
-            <div className="grid grid-cols-1 gap-8 tablet:grid-cols-3 tablet:gap-12">
+            <div className="flex flex-col gap-12 desktop:flex-row desktop:justify-between">
               {/* Brand */}
-              <div className="flex flex-col items-start">
+              <div className="flex max-w-sm flex-col items-start">
                 <h2 className="sr-only">Goa Startup Festival 2026</h2>
                 <Link href="/" className="inline-block" aria-label="Goa Startup Festival Home">
                   <img 
@@ -42,7 +41,8 @@ export function SiteFooter() {
                 </p>
               </div>
 
-              {/* Quick links */}
+              <div className="flex flex-col gap-12 tablet:flex-row tablet:gap-24">
+                {/* Quick links */}
               <nav aria-label="Quick Links">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-ink">
                   Quick Links
@@ -107,8 +107,9 @@ export function SiteFooter() {
                 </ul>
               </div>
             </div>
+          </div>
 
-            {/* Registration prompt */}
+          {/* Registration prompt */}
             <div className="mt-12 flex flex-col items-center justify-between gap-4 rounded-md border border-surface-alt bg-surface p-6 shadow-sm tablet:flex-row">
               <div>
                 <p className="font-bold text-ink">Registration is open</p>

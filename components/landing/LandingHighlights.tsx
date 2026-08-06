@@ -54,14 +54,14 @@ function EventCard({ event, size }: { event: Highlight; size: 'large' | 'small' 
       </div>
 
       {/* Dark overlay — stronger on hover to make text readable */}
-      <div className="absolute inset-0 bg-black/40 transition-all duration-300 group-hover:bg-black/75" />
+      <div className="absolute inset-0 bg-black/40 transition-colors duration-300 group-hover:bg-black/75" />
 
       {/* Content — name always visible, description appears on hover */}
       <div className="absolute inset-0 flex flex-col justify-end p-5 tablet:p-6">
         <h3 className={`font-bold text-white ${size === 'large' ? 'text-2xl tablet:text-3xl' : 'text-base tablet:text-lg'}`}>
           {event.title}
         </h3>
-        <p className="mt-2 text-sm text-white/80 leading-relaxed max-h-0 overflow-hidden transition-all duration-300 group-hover:max-h-24 opacity-0 group-hover:opacity-100">
+        <p className="mt-2 text-sm text-white/80 leading-relaxed max-h-0 overflow-hidden transition-[max-height,opacity] duration-300 group-hover:max-h-24 opacity-0 group-hover:opacity-100">
           {event.description}
         </p>
       </div>
