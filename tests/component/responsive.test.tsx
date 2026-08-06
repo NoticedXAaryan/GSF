@@ -229,16 +229,16 @@ describe("Responsive – Grid Column Breakpoints", () => {
   });
 
   describe("Footer: 1 → 3 columns", () => {
-    it("uses grid-cols-1 for mobile (base)", () => {
+    it("Footer: 1 → 3 columns -> uses flex-col for mobile (base)", () => {
       const { container } = render(<SiteFooter />);
-      const grid = container.querySelector(".grid");
-      expect(grid?.className).toMatch(/grid-cols-1/);
+      const flex = container.querySelector(".flex-col");
+      expect(flex?.className).toMatch(/flex-col/);
     });
 
-    it("uses tablet:grid-cols-3 at 768px+", () => {
+    it("Footer: 1 → 3 columns -> uses tablet:flex-row at 768px+", () => {
       const { container } = render(<SiteFooter />);
-      const grid = container.querySelector(".grid");
-      expect(grid?.className).toMatch(/tablet:grid-cols-3/);
+      const flex = container.querySelector(".tablet\\:flex-row");
+      expect(flex?.className).toMatch(/tablet:flex-row/);
     });
   });
 });
@@ -413,11 +413,12 @@ describe("Responsive – Footer Navigation", () => {
     expect(within(nav).getByRole("link", { name: "Login" })).toHaveAttribute("href", "/login");
   });
 
-  it("footer uses responsive grid (1 col mobile → 3 col tablet)", () => {
+  it("footer uses responsive flex layout (col mobile → row tablet)", () => {
     const { container } = render(<SiteFooter />);
-    const grid = container.querySelector(".grid");
-    expect(grid?.className).toMatch(/grid-cols-1/);
-    expect(grid?.className).toMatch(/tablet:grid-cols-3/);
+    const flex = container.querySelector(".flex-col");
+    expect(flex?.className).toMatch(/flex-col/);
+    const row = container.querySelector(".tablet\\:flex-row");
+    expect(row?.className).toMatch(/tablet:flex-row/);
   });
 });
 
@@ -652,10 +653,10 @@ describe("Visual Regression – Responsive Class Contracts", () => {
       expect(grid?.className).toMatch(/\bgrid-cols-2\b/);
     });
 
-    it("footer columns stack vertically (grid-cols-1)", () => {
+    it("footer columns stack vertically (flex-col)", () => {
       const { container } = render(<SiteFooter />);
-      const grid = container.querySelector(".grid");
-      expect(grid?.className).toMatch(/grid-cols-1/);
+      const flex = container.querySelector(".flex-col");
+      expect(flex?.className).toMatch(/flex-col/);
     });
 
     it("hamburger menu is visible (desktop:hidden means visible below 1024px)", () => {
@@ -685,10 +686,10 @@ describe("Visual Regression – Responsive Class Contracts", () => {
       expect(grid?.className).toMatch(/tablet:grid-cols-3/);
     });
 
-    it("footer transitions to 3 columns (tablet:grid-cols-3)", () => {
+    it("footer transitions to row layout (tablet:flex-row)", () => {
       const { container } = render(<SiteFooter />);
-      const grid = container.querySelector(".grid");
-      expect(grid?.className).toMatch(/tablet:grid-cols-3/);
+      const flex = container.querySelector(".tablet\\:flex-row");
+      expect(flex?.className).toMatch(/tablet:flex-row/);
     });
 
     it("hero heading scales to tablet:text-5xl", () => {

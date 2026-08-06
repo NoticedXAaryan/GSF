@@ -51,7 +51,7 @@ describe("SponsorsSection and SiteFooter", () => {
   it("renders the semantic responsive footer with exact links, contact, and attribution", () => {
     const html = renderToStaticMarkup(<SiteFooter />);
     expect(html).toContain("<footer");
-    expect(html).toContain("tablet:grid-cols-3");
+    expect(html).toContain("tablet:flex-row");
     expect(html).toContain("Goa Startup Festival 2026");
     expect(html).toContain("Jointly organized by PIERC, Parul University &amp; PU Goa");
     for (const [label, href] of [["About", "#about"], ["Schedule", "#schedule"], ["Register", "/signup"], ["Login", "/login"]]) {

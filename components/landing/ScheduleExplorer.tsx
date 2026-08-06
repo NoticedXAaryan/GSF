@@ -100,7 +100,7 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
       ) : (
         <div className="relative mt-16 pb-12">
           {/* The Vertical Line */}
-          <div className="absolute left-[7px] top-2 bottom-0 w-[2px] -translate-x-1/2 bg-surface-alt tablet:left-1/2" />
+          <div className="absolute left-6 top-2 bottom-0 w-[2px] -translate-x-1/2 bg-surface-alt tablet:left-1/2" />
 
           <div className="space-y-12">
             {timeSlots.map((slot, idx) => {
@@ -114,7 +114,7 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
               return (
                 <div key={slot.time} className="relative w-full group">
                   {/* The Imprint Icon */}
-                  <div className="absolute left-[7px] top-4 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-surface text-surface-alt transition-transform group-hover:scale-110 group-hover:text-accent tablet:left-1/2 z-10">
+                  <div className="absolute left-6 top-4 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-surface text-surface-alt transition-transform group-hover:scale-110 group-hover:text-accent tablet:left-1/2 z-10">
                     <TimelineIcon className="h-4 w-4" />
                   </div>
 
@@ -140,7 +140,7 @@ export function ScheduleExplorer({ events }: ScheduleExplorerProps) {
                   </div>
 
                   {/* Events Container */}
-                  <div className={`pl-8 tablet:pl-0 tablet:w-[calc(50%-3rem)] ${
+                  <div className={`pl-14 tablet:pl-0 tablet:w-[calc(50%-3rem)] ${
                     isEven ? "tablet:ml-[calc(50%+3rem)]" : "tablet:mr-[calc(50%+3rem)]"
                   }`}>
                     {/* Mobile Time */}

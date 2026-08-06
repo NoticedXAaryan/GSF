@@ -90,6 +90,12 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // Refresh session every 24 hours
   },
 
+  // ── Rate Limiting ──
+  rateLimit: {
+    window: 60, // 60 seconds
+    max: 100, // 100 requests per 60 seconds
+  },
+
   // ── Plugins ──
   plugins: [
     nextCookies(), // Must be last — handles Next.js cookie forwarding

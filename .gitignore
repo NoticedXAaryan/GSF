@@ -9,5 +9,6 @@ test-results/
 .env*
 !.env.example
 drizzle/meta/
-.kiro/
 .vscode/
+.agents
+docs/ai/

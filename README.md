@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Goa Startup Festival 2026
 
-# Run and deploy your AI Studio app
+Welcome to the official platform for the Goa Startup Festival 2026! A premier two-day entrepreneurship festival serving as a launchpad bridging academia, industry, and the startup ecosystem.
 
-This contains everything you need to run your app locally.
+## Getting Started
 
-View your app in AI Studio: https://ai.studio/apps/53d6084d-ec5f-4cae-971f-e26bcae63b71
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+To run the application locally, you will need Node.js installed.
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Set up your environment variables:
+   Copy `.env.example` to `.env.local` and add your keys.
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Design Principles
+- **Show, don't tell**: Dynamic layouts and purposeful motion.
+- **Premium restraint**: A focused color strategy.
+- **Clear typography hierarchy** over excessive decoration.
+- **Impeccable craftsmanship**: Every hover, focus, and state must feel intentional.
+

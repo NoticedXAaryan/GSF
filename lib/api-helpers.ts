@@ -44,24 +44,36 @@ export function jsonResponse<T>(data: T, status = 200) {
 }
 
 export function errorResponse(message: string, status = 400, details?: unknown) {
+  // Never leak Error stack traces to the client in production
+  const safeDetails = details instanceof Error && process.env.NODE_ENV === 'production' 
+    ? { message: details.message } 
+    : details;
+
   return NextResponse.json(
-    { error: message, ...(details ? { details } : {}) },
+    { error: message, ...(safeDetails ? { details: safeDetails } : {}) },
     { status }
   );
 }
 
 // ────────────────────────────────────────────────────────────
-// Input Validation
+// Input Validation & CSRF Protection
 // ────────────────────────────────────────────────────────────
 
 /**
  * Parse request body against a Zod schema. Returns the validated data
  * or a formatted error response.
+ * Also enforces CSRF mitigation by strictly requiring Content-Type: application/json.
  */
 export async function parseBody<T>(
   request: Request,
   schema: ZodSchema<T>
 ): Promise<{ data: T; error?: never } | { data?: never; error: NextResponse }> {
+  // CSRF Mitigation: Enforce application/json for state-changing requests
+  const contentType = request.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    return { error: errorResponse('Unsupported Media Type. Expected application/json', 415) };
+  }
+
   try {
     const raw = await request.json();
     const data = schema.parse(raw);

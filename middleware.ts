@@ -50,6 +50,25 @@ export function middleware(request: NextRequest) {
     'Permissions-Policy',
     'camera=(self), microphone=(), geolocation=()'
   );
+  
+  // HSTS - 1 year, include subdomains
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
+  // Content Security Policy
+  const csp = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data: https://lh3.googleusercontent.com;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    block-all-mixed-content;
+    upgrade-insecure-requests;
+  `.replace(/\s{2,}/g, ' ').trim();
+  response.headers.set('Content-Security-Policy', csp);
 
   return response;
 }

@@ -434,11 +434,12 @@ describe("SiteFooter", () => {
     expect(screen.getByText(/built by the epic team/i)).toBeInTheDocument();
   });
 
-  it("renders 3 content columns using responsive grid classes", () => {
+  it("renders content using responsive flex classes", () => {
     const { container } = render(<SiteFooter />);
-    const grid = container.querySelector(".grid");
-    expect(grid?.className).toMatch(/grid-cols-1/);
-    expect(grid?.className).toMatch(/tablet:grid-cols-3/);
+    const flex = container.querySelector(".flex-col");
+    expect(flex?.className).toMatch(/flex-col/);
+    const row = container.querySelector(".tablet\\:flex-row");
+    expect(row?.className).toMatch(/tablet:flex-row/);
   });
 
   it("contains navigation landmark for quick links", () => {

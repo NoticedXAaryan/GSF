@@ -89,11 +89,11 @@ function CapacityBar({ event }: { event: EventCapacity }) {
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-fg truncate max-w-[200px]">
+      <div className="flex items-center justify-between text-sm gap-4">
+        <span className="font-medium text-fg truncate flex-1 min-w-0">
           {event.eventName}
         </span>
-        <span className="text-fg-dim">
+        <span className="text-fg-dim shrink-0">
           {event.currentRegistrations}/{capacity}
         </span>
       </div>

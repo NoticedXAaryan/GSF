@@ -35,7 +35,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           disabled={disabled}
           className={cn(
-            "w-full rounded-tile border border-line bg-panel-alt px-4 py-3 text-sm font-medium text-fg placeholder:text-fg-dim/70",
+            "w-full rounded-tile border border-line bg-panel-alt px-4 py-3 text-base tablet:text-sm font-medium text-fg placeholder:text-fg-dim/70",
             "focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime",
             "transition-colors duration-150",
             disabled && "cursor-not-allowed opacity-50",

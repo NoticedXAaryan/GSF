@@ -61,38 +61,17 @@ function formatTimestamp(timestamp: number): string {
   return "Just now";
 }
 
+import DOMPurify from 'isomorphic-dompurify';
+
 /**
  * Renders announcement bodies as rich text with a conservative tag allowlist.
- * Anything outside the allowlist is stripped, along with inline event handlers
- * and `javascript:` URLs, so stored markup cannot execute.
+ * Using isomorphic-dompurify ensures robust XSS protection on both client and server.
  */
 function sanitizeHtml(html: string): string {
-  const allowed = new Set([
-    "b", "strong", "i", "em", "u", "s",
-    "p", "br", "ul", "ol", "li", "span", "a", "code",
-  ]);
-
-  return html
-    // Drop whole dangerous elements including their content.
-    .replace(/<(script|style|iframe|object|embed)\b[\s\S]*?<\/\1\s*>/gi, "")
-    .replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g, (match, rawTag: string, attrs: string) => {
-      const tag = rawTag.toLowerCase();
-      if (!allowed.has(tag)) return "";
-
-      // Closing tags carry no attributes.
-      if (match.startsWith("</")) return `</${tag}>`;
-
-      if (tag === "a") {
-        const hrefMatch = attrs.match(/\shref\s*=\s*("([^"]*)"|'([^']*)')/i);
-        const href = (hrefMatch?.[2] ?? hrefMatch?.[3] ?? "").trim();
-        const safe = /^(https?:\/\/|mailto:|\/)/i.test(href);
-        return safe
-          ? `<a href="${href.replace(/"/g, "&quot;")}" rel="noopener noreferrer nofollow" target="_blank">`
-          : "<span>";
-      }
-
-      return `<${tag}>`;
-    });
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['b', 'strong', 'i', 'em', 'u', 's', 'p', 'br', 'ul', 'ol', 'li', 'span', 'a', 'code'],
+    ALLOWED_ATTR: ['href', 'rel', 'target'],
+  });
 }
 
 export function AnnouncementFeed({ announcements }: AnnouncementFeedProps) {

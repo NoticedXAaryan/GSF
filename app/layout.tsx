@@ -20,6 +20,34 @@ export const metadata: Metadata = {
   title: 'Goa Startup Festival 2026 | Parul University',
   description:
     'Join the biggest startup movement at Parul University Goa Campus. Pitch your idea, attend masterclasses, and explore the startup ecosystem.',
+  keywords: ['Startup Festival', 'Parul University', 'Goa', 'Entrepreneurship', 'Startups', 'Tech Event', 'Networking'],
+  authors: [{ name: 'Parul University' }],
+  creator: 'Parul University',
+  openGraph: {
+    title: 'Goa Startup Festival 2026',
+    description: 'Join the biggest startup movement at Parul University Goa Campus.',
+    url: 'https://goastartupfestival.com',
+    siteName: 'Goa Startup Festival 2026',
+    images: [
+      {
+        url: '/hero-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Goa Startup Festival Hero Image',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Goa Startup Festival 2026',
+    description: 'Join the biggest startup movement at Parul University Goa Campus.',
+    images: ['/hero-image.jpg'],
+  },
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({

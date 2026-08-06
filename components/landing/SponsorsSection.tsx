@@ -9,6 +9,7 @@ import { Cloud, Rocket } from "lucide-react";
 export function SponsorsSection() {
   return (
     <section
+      id="sponsors"
       aria-labelledby="partners-title"
       className="relative overflow-hidden bg-sky-500 py-16 tablet:py-24"
     >
