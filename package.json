@@ -27,7 +27,9 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.25",
+    "@react-email/components": "^1.0.12",
     "@types/dompurify": "^3.0.5",
+    "@vercel/blob": "^2.7.0",
     "autoprefixer": "^10.4.21",
     "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",
@@ -46,6 +48,8 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0-rc-65a56d0e-20241020",
     "react-dom": "^19.0.0-rc-65a56d0e-20241020",
+    "recharts": "^3.10.1",
+    "resend": "^6.18.1",
     "server-only": "0.0.1",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.4.3"

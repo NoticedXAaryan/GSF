@@ -5,6 +5,7 @@ import { CalendarDays, Clock, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { Modal } from '@/components/ui/Modal';
+import { EventRegistrationForm } from '@/components/dashboard/EventRegistrationForm';
 
 interface ScheduleEvent {
   id: string;
@@ -135,19 +136,15 @@ export default function UserSchedulePage() {
     setApplyModalOpen(true);
   }
 
-  async function submitApplication() {
+  async function submitApplication(payload: any) {
     if (!applyEventId) return;
-    if (!applyNotes.trim()) {
-      setApplyError('Please provide a reason for applying.');
-      return;
-    }
     setApplyError(null);
     setApplyingId(applyEventId);
     try {
       const res = await fetch(`/api/events/${applyEventId}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: applyNotes.trim() }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
@@ -275,24 +272,13 @@ export default function UserSchedulePage() {
 
       {/* Application Modal */}
       <Modal open={applyModalOpen} onClose={() => setApplyModalOpen(false)} title="Event Application">
-        <div className="space-y-4 py-4">
-          <p className="text-sm text-fg-dim">This event has limited capacity. Please briefly explain why you want to attend.</p>
-          <div className="space-y-2">
-            <label htmlFor="notes" className="text-sm font-medium text-fg">Why do you want to apply? *</label>
-            <textarea
-              id="notes"
-              value={applyNotes}
-              onChange={(e) => setApplyNotes(e.target.value)}
-              className="flex min-h-[100px] w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-fg placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="e.g. I am very interested in learning more about..."
-            />
-            {applyError && <p className="text-xs font-medium text-red-500">{applyError}</p>}
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setApplyModalOpen(false)} disabled={applyingId !== null}>Cancel</Button>
-            <Button onClick={submitApplication} loading={applyingId !== null} disabled={applyingId !== null}>Submit Application</Button>
-          </div>
-        </div>
+        <EventRegistrationForm 
+          eventName={events.find(e => e.id === applyEventId)?.name || ''}
+          isApplying={applyingId !== null}
+          onCancel={() => setApplyModalOpen(false)}
+          onSubmit={submitApplication}
+          error={applyError}
+        />
       </Modal>
     </div>
   );

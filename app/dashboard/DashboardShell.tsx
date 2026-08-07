@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProfileSettingsModal } from '@/components/dashboard/ProfileSettingsModal';
+import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { signOut } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -44,6 +45,9 @@ function getNavLinks(role: string): NavLink[] {
       { label: 'Users', short: 'Users', href: '/dashboard/admin/users', icon: <Users className={ICON} /> },
       { label: 'Events', short: 'Events', href: '/dashboard/admin/events', icon: <Calendar className={ICON} /> },
       { label: 'Applications', short: 'Apps', href: '/dashboard/admin/applications', icon: <FileText className={ICON} /> },
+      { label: 'Idea Pitch', short: 'Idea', href: '/dashboard/admin/idea-pitch', icon: <FileText className={ICON} /> },
+      { label: 'Reel Pitch', short: 'Reel', href: '/dashboard/admin/reel-pitch', icon: <FileText className={ICON} /> },
+      { label: 'Masterclass', short: 'Class', href: '/dashboard/admin/masterclass', icon: <FileText className={ICON} /> },
       { label: 'Volunteers', short: 'Vols', href: '/dashboard/admin/volunteers', icon: <UserCheck className={ICON} /> },
       { label: 'Scanner', short: 'Scan', href: '/dashboard/admin/scanner', icon: <ScanLine className={ICON} /> },
       { label: 'Announcements', short: 'News', href: '/dashboard/admin/announcements', icon: <Megaphone className={ICON} /> },
@@ -140,7 +144,10 @@ export function DashboardShell({
             <Link href="/" className="flex items-center gap-2">
               <img src="/logo.png" alt="GSF Logo" className="h-10 w-auto object-contain rounded-sm" />
             </Link>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Nav */}
@@ -221,6 +228,7 @@ export function DashboardShell({
           <img src="/logo.png" alt="GSF Logo" className="h-8 w-auto object-contain rounded-sm" />
         </Link>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <ThemeToggle />
           <div 
             className="cursor-pointer"

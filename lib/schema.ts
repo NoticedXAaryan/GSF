@@ -8,6 +8,7 @@ import {
   uniqueIndex,
   index,
   pgEnum,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 // ────────────────────────────────────────────────────────────
@@ -305,3 +306,85 @@ export const tasks = pgTable(
     index('idx_tasks_checklist').on(table.checklistId),
   ]
 );
+
+// ────────────────────────────────────────────────────────────
+// Event Registration Specific Data
+// ────────────────────────────────────────────────────────────
+
+export const ideaPitchData = pgTable('idea_pitch_data', {
+  id: text('id').primaryKey(),
+  applicationId: text('application_id')
+    .notNull()
+    .unique()
+    .references(() => applications.id, { onDelete: 'cascade' }),
+  teamName: text('team_name').notNull(),
+  ideaTitle: text('idea_title').notNull(),
+  ideaSummary: text('idea_summary').notNull(),
+  problemSolution: text('problem_solution').notNull(),
+  teamMembers: jsonb('team_members').notNull(), // Array of {name, email, role}
+  pitchDeckUrl: text('pitch_deck_url'),
+});
+
+export const reelPitchData = pgTable('reel_pitch_data', {
+  id: text('id').primaryKey(),
+  applicationId: text('application_id')
+    .notNull()
+    .unique()
+    .references(() => applications.id, { onDelete: 'cascade' }),
+  instagramUrl: text('instagram_url').notNull(),
+  teamMembers: jsonb('team_members').notNull(), // Array of names (max 3)
+  acknowledgedRules: boolean('acknowledged_rules').notNull().default(false),
+  likes: integer('likes').default(0),
+  views: integer('views').default(0),
+});
+
+export const masterclassData = pgTable('masterclass_data', {
+  id: text('id').primaryKey(),
+  applicationId: text('application_id')
+    .notNull()
+    .unique()
+    .references(() => applications.id, { onDelete: 'cascade' }),
+  sessions: jsonb('sessions').notNull(), // Array of selected session IDs (1 to 4)
+});
+
+// ────────────────────────────────────────────────────────────
+// Team Management
+// ────────────────────────────────────────────────────────────
+
+export const teams = pgTable('teams', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  teamLeaderId: text('team_leader_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  inviteCode: text('invite_code').notNull().unique(),
+  createdAt: bigint('created_at', { mode: 'number' }).notNull(),
+});
+
+export const teamMembers = pgTable('team_members', {
+  id: text('id').primaryKey(),
+  teamId: text('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  role: text('role').notNull().default('MEMBER'),
+  status: text('status').notNull().default('PENDING'),
+});
+
+// ────────────────────────────────────────────────────────────
+// Drafts and Notifications
+// ────────────────────────────────────────────────────────────
+
+export const registrationDrafts = pgTable('registration_drafts', {
+  id: text('id').primaryKey(),
+  uid: text('uid').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  eventId: text('event_id').notNull(),
+  data: jsonb('data').notNull(),
+  updatedAt: bigint('updated_at', { mode: 'number' }).notNull(),
+});
+
+export const notifications = pgTable('notifications', {
+  id: text('id').primaryKey(),
+  uid: text('uid').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  isRead: boolean('is_read').default(false),
+  type: text('type').notNull(),
+  link: text('link'),
+  createdAt: bigint('created_at', { mode: 'number' }).notNull(),
+});

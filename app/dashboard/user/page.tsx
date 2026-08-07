@@ -23,6 +23,7 @@ import {
   MiniBars,
 } from '@/components/ui/bento';
 import { RegisterFestivalButton } from './RegisterFestivalButton';
+import { MyTeamPanel } from '@/components/dashboard/MyTeamPanel';
 import {
   Ticket,
   FileText,
@@ -409,6 +410,11 @@ export default async function AttendeeDashboardPage() {
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </BentoCard>
+      </div>
+
+      {/* ---------- Team Management Panel ---------- */}
+      <div className="mt-8">
+        <MyTeamPanel />
       </div>
     </div>
   );

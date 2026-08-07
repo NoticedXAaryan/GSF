@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { user, events, applications, clearancePasses } from '@/lib/schema';
+import { user, events, applications, clearancePasses, ideaPitchData, reelPitchData, masterclassData, registrationDrafts } from '@/lib/schema';
+import { canRegister, getEventSlug } from '@/lib/validateRegistration';
 import { jsonResponse, errorResponse, getSession, generateId } from '@/lib/api-helpers';
 import { sendApplicationConfirmation } from '@/lib/email';
 
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .select({
         profileComplete: user.profileComplete,
         accountStatus: user.accountStatus,
+        role: user.role,
       })
       .from(user)
       .where(eq(user.id, uid))
@@ -87,6 +89,31 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (!notes) {
       return errorResponse('Please provide a reason for applying', 400);
+    }
+
+    const eventSlug = getEventSlug(event.name);
+    if (!canRegister(eventSlug, userData?.role || 'Attendee')) {
+      return errorResponse('Registration closed or unauthorized for this event.', 403);
+    }
+
+    if (eventSlug === 'idea-pitch') {
+      if (!body.teamName || !body.ideaTitle || !body.ideaSummary || !body.problemSolution || !body.teamMembers) {
+        return errorResponse('Missing required fields for Idea Pitch.', 400);
+      }
+    } else if (eventSlug === 'reel-pitch') {
+      if (!body.instagramUrl || !body.teamMembers || body.acknowledgedRules === undefined) {
+        return errorResponse('Missing required fields for Reel Pitch.', 400);
+      }
+      if (body.teamMembers.length > 3) {
+        return errorResponse('Max 3 members allowed for Reel Pitch.', 400);
+      }
+      if (!body.instagramUrl.includes('instagram.com')) {
+        return errorResponse('Invalid Instagram URL.', 400);
+      }
+    } else if (eventSlug === 'masterclass') {
+      if (!body.sessions || !body.sessions.length) {
+        return errorResponse('Please select at least one session.', 400);
+      }
     }
 
     // ── Check for existing application ──
@@ -155,39 +182,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const applicationId = generateId();
     const appliedAt = Date.now();
 
-    let createdApplication;
-
-    if (!isShortlisted) {
-      // Type is "registration": status = "accepted", increment currentRegistrations
-      const result = await db.transaction(async (tx) => {
-        const [application] = await tx
-          .insert(applications)
-          .values({
-            id: applicationId,
-            uid,
-            subEventId: eventId,
-            userName: session.user.name,
-            userEmail: session.user.email,
-            status: 'accepted',
-            notes,
-            appliedAt,
-          })
-          .returning();
-
-        await tx
-          .update(events)
-          .set({
-            currentRegistrations: sql`${events.currentRegistrations} + 1`,
-            updatedAt: Date.now(),
-          })
-          .where(eq(events.id, eventId));
-
-        return application;
-      });
-      createdApplication = result;
-    } else {
-      // Type is "shortlisted": status = "pending", no increment
-      const [application] = await db
+    const createdApplication = await db.transaction(async (tx) => {
+      const statusToSet = isShortlisted ? 'pending' : 'accepted';
+      
+      const [application] = await tx
         .insert(applications)
         .values({
           id: applicationId,
@@ -195,13 +193,80 @@ export async function POST(request: NextRequest, context: RouteContext) {
           subEventId: eventId,
           userName: session.user.name,
           userEmail: session.user.email,
-          status: 'pending',
+          status: statusToSet,
           notes,
           appliedAt,
         })
         .returning();
-      createdApplication = application;
-    }
+
+      if (!isShortlisted) {
+        // Safe concurrency update
+        if (event.capacity !== null) {
+          const updatedEvent = await tx
+            .update(events)
+            .set({
+              currentRegistrations: sql`${events.currentRegistrations} + 1`,
+              updatedAt: Date.now(),
+            })
+            .where(
+              and(
+                eq(events.id, eventId),
+                sql`${events.currentRegistrations} < ${event.capacity}`
+              )
+            )
+            .returning();
+          
+          if (updatedEvent.length === 0) {
+            throw new Error('CAPACITY_FULL');
+          }
+        } else {
+          await tx
+            .update(events)
+            .set({
+              currentRegistrations: sql`${events.currentRegistrations} + 1`,
+              updatedAt: Date.now(),
+            })
+            .where(eq(events.id, eventId));
+        }
+      }
+
+      if (eventSlug === 'idea-pitch') {
+        await tx.insert(ideaPitchData).values({
+          id: generateId(),
+          applicationId: application.id,
+          teamName: body.teamName,
+          ideaTitle: body.ideaTitle,
+          ideaSummary: body.ideaSummary,
+          problemSolution: body.problemSolution,
+          teamMembers: body.teamMembers,
+          pitchDeckUrl: body.pitchDeckUrl || null,
+        });
+      } else if (eventSlug === 'reel-pitch') {
+        await tx.insert(reelPitchData).values({
+          id: generateId(),
+          applicationId: application.id,
+          instagramUrl: body.instagramUrl,
+          teamMembers: body.teamMembers,
+          acknowledgedRules: body.acknowledgedRules,
+        });
+      } else if (eventSlug === 'masterclass') {
+        await tx.insert(masterclassData).values({
+          id: generateId(),
+          applicationId: application.id,
+          sessions: body.sessions,
+        });
+      }
+
+      return application;
+    });
+
+    // Delete draft after successful application
+    await db.delete(registrationDrafts).where(
+      and(
+        eq(registrationDrafts.uid, uid),
+        eq(registrationDrafts.eventId, eventSlug)
+      )
+    );
 
     // ── Fire-and-forget: send application confirmation email ──
     sendApplicationConfirmation(
@@ -213,6 +278,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return jsonResponse(createdApplication, 201);
   } catch (error) {
+    if (error instanceof Error && error.message === 'CAPACITY_FULL') {
+      return errorResponse('Event is full', 400);
+    }
     console.error('[POST /api/events/:id/apply]', error);
     return errorResponse('Internal server error', 500);
   }

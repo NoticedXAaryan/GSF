@@ -1,5 +1,19 @@
+'use client';
+
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
 
 interface EventCapacity {
   eventId: string;
@@ -73,46 +87,21 @@ function StatusBadge({
   );
 }
 
-function CapacityBar({ event }: { event: EventCapacity }) {
-  const capacity = event.capacity ?? 0;
-  const percentage =
-    capacity > 0
-      ? Math.min(Math.round((event.currentRegistrations / capacity) * 100), 100)
-      : 0;
-
-  const barColor =
-    percentage >= 90
-      ? "bg-magenta"
-      : percentage >= 70
-        ? "bg-volt"
-        : "bg-lime";
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-sm gap-4">
-        <span className="font-medium text-fg truncate flex-1 min-w-0">
-          {event.eventName}
-        </span>
-        <span className="text-fg-dim shrink-0">
-          {event.currentRegistrations}/{capacity}
-        </span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-panel-alt">
-        <div
-          className={cn("h-full rounded-full transition-all", barColor)}
-          style={{ width: `${percentage}%` }}
-          role="progressbar"
-          aria-valuenow={event.currentRegistrations}
-          aria-valuemin={0}
-          aria-valuemax={capacity}
-          aria-label={`${event.eventName}: ${event.currentRegistrations} of ${capacity} registrations`}
-        />
-      </div>
-    </div>
-  );
-}
-
 export function AdminStats({ stats }: AdminStatsProps) {
+  const pieData = [
+    { name: 'Pending', value: stats.applicationsByStatus.pending, color: '#f59e0b' },
+    { name: 'Accepted', value: stats.applicationsByStatus.accepted, color: '#10b981' },
+    { name: 'Waitlisted', value: stats.applicationsByStatus.waitlisted, color: '#3b82f6' },
+    { name: 'Rejected', value: stats.applicationsByStatus.rejected, color: '#ef4444' },
+  ].filter(d => d.value > 0);
+
+  const barData = stats.eventsCapacity.map(event => ({
+    name: event.eventName,
+    registrations: event.currentRegistrations,
+    capacity: event.capacity || 0,
+    utilization: event.capacity ? Math.round((event.currentRegistrations / event.capacity) * 100) : 0,
+  }));
+
   return (
     <div className="space-y-6">
       {/* Top row: overview stat cards */}
@@ -123,46 +112,64 @@ export function AdminStats({ stats }: AdminStatsProps) {
         <StatCard label="Check-ins (24h)" value={stats.checkInsLast24h} />
       </div>
 
-      {/* Additional stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="New Users (7d)" value={stats.newUsersLast7d} />
-      </div>
+      {/* Applications by status & Capacity utilization */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <h3 className="text-sm font-semibold text-fg">
+              Applications by Status
+            </h3>
+          </CardHeader>
+          <CardBody>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <StatusBadge
+                label="Pending"
+                count={stats.applicationsByStatus.pending}
+                variant="pending"
+              />
+              <StatusBadge
+                label="Accepted"
+                count={stats.applicationsByStatus.accepted}
+                variant="accepted"
+              />
+              <StatusBadge
+                label="Waitlisted"
+                count={stats.applicationsByStatus.waitlisted}
+                variant="waitlisted"
+              />
+              <StatusBadge
+                label="Rejected"
+                count={stats.applicationsByStatus.rejected}
+                variant="rejected"
+              />
+            </div>
+            {pieData.length > 0 && (
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardBody>
+        </Card>
 
-      {/* Applications by status */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-sm font-semibold text-fg">
-            Applications by Status
-          </h3>
-        </CardHeader>
-        <CardBody>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatusBadge
-              label="Pending"
-              count={stats.applicationsByStatus.pending}
-              variant="pending"
-            />
-            <StatusBadge
-              label="Accepted"
-              count={stats.applicationsByStatus.accepted}
-              variant="accepted"
-            />
-            <StatusBadge
-              label="Waitlisted"
-              count={stats.applicationsByStatus.waitlisted}
-              variant="waitlisted"
-            />
-            <StatusBadge
-              label="Rejected"
-              count={stats.applicationsByStatus.rejected}
-              variant="rejected"
-            />
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Capacity utilization */}
-      {stats.eventsCapacity.length > 0 && (
+        {/* Capacity utilization */}
         <Card>
           <CardHeader>
             <h3 className="text-sm font-semibold text-fg">
@@ -170,14 +177,29 @@ export function AdminStats({ stats }: AdminStatsProps) {
             </h3>
           </CardHeader>
           <CardBody>
-            <div className="space-y-4">
-              {stats.eventsCapacity.map((event) => (
-                <CapacityBar key={event.eventId} event={event} />
-              ))}
-            </div>
+            {stats.eventsCapacity.length > 0 ? (
+              <div className="h-[340px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis type="number" hide />
+                    <YAxis type="category" dataKey="name" width={100} tick={{ fill: '#888', fontSize: 12 }} />
+                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#111', borderColor: '#333', color: '#fff' }} />
+                    <Bar dataKey="utilization" fill="#10b981" radius={[0, 4, 4, 0]}>
+                      {barData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.utilization >= 90 ? '#ef4444' : entry.utilization >= 70 ? '#f59e0b' : '#10b981'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-fg-dim">
+                No capacity tracking
+              </div>
+            )}
           </CardBody>
         </Card>
-      )}
+      </div>
     </div>
   );
 }
