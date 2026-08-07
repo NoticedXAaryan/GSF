@@ -61,16 +61,18 @@ function formatTimestamp(timestamp: number): string {
   return "Just now";
 }
 
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtmlLib from 'sanitize-html';
 
 /**
  * Renders announcement bodies as rich text with a conservative tag allowlist.
- * Using isomorphic-dompurify ensures robust XSS protection on both client and server.
+ * Using sanitize-html ensures robust XSS protection on both client and server without JSDOM overhead.
  */
 function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['b', 'strong', 'i', 'em', 'u', 's', 'p', 'br', 'ul', 'ol', 'li', 'span', 'a', 'code'],
-    ALLOWED_ATTR: ['href', 'rel', 'target'],
+  return sanitizeHtmlLib(html, {
+    allowedTags: ['b', 'strong', 'i', 'em', 'u', 's', 'p', 'br', 'ul', 'ol', 'li', 'span', 'a', 'code'],
+    allowedAttributes: {
+      a: ['href', 'rel', 'target']
+    },
   });
 }
 
