@@ -1,6 +1,0 @@
-{
-  "name": "Goa Startup Festival 2026",
-  "description": "The official platform for Goa Startup Festival 2026. Mission Control for your entrepreneurial journey.",
-  "requestFramePermissions": ["camera"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

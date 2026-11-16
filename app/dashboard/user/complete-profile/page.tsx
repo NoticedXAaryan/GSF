@@ -278,11 +278,11 @@ export default function CompleteProfilePage() {
                     className="w-full sm:w-auto px-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 sm:hidden"
                     onClick={async () => {
                       try {
-                        const { authClient } = await import('@/lib/auth-client');
+                        const { authClient, redirectAfterSignOut } = await import('@/lib/auth-client');
                         await authClient.signOut({
                           fetchOptions: {
                             onSuccess: () => {
-                              window.location.href = '/login';
+                              redirectAfterSignOut('/login');
                             }
                           }
                         });

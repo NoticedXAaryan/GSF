@@ -47,7 +47,7 @@ export async function sendEmail(
   bcc?: string[]
 ): Promise<boolean> {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn(`⚠️ SMTP credentials not set. Simulated email:`);
+    console.warn('SMTP credentials not set. Email was not sent.');
     console.warn(`  To: ${Array.isArray(to) ? to.join(', ') : to}`);
     console.warn(`  Subject: ${subject}`);
     if (bcc?.length) console.warn(`  BCC: ${bcc.length} recipients`);

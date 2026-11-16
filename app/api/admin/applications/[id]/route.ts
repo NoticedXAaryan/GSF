@@ -6,8 +6,11 @@ import { getSession, generateId } from '@/lib/api-helpers';
 import { headers } from 'next/headers';
 import { Resend } from 'resend';
 
-// Use a mock or real Resend instance.
-const resend = new Resend(process.env.RESEND_API_KEY || 're_mock_key');
+function getResend(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+}
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -36,7 +39,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       });
 
       // Send email if accepted
-      if (status === 'accepted' && process.env.RESEND_API_KEY) {
+      const resend = getResend();
+      if (status === 'accepted' && resend) {
         try {
           await resend.emails.send({
             from: 'GSF 2026 <noreply@goastartupfestival.com>',

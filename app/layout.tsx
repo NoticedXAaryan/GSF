@@ -17,6 +17,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://gsf.goa.paruluniversity.ac.in'),
   title: 'Goa Startup Festival 2026 | Parul University',
   description:
     'Join the biggest startup movement at Parul University Goa Campus. Pitch your idea, attend masterclasses, and explore the startup ecosystem.',
