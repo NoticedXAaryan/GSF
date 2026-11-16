@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+coverage
+playwright-report
+test-results
+tsc_output.txt
+*.log
+.env
+.env.*
+!.env.example
+hero.jpg

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProfileSettingsModal } from '@/components/dashboard/ProfileSettingsModal';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
-import { signOut } from '@/lib/auth-client';
+import { redirectAfterSignOut, signOut } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
@@ -80,7 +80,7 @@ function isLinkActive(pathname: string, link: NavLink): boolean {
 }
 
 function handleLogout() {
-  signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/'; } } });
+  signOut({ fetchOptions: { onSuccess: () => { redirectAfterSignOut('/'); } } });
 }
 
 function UserAvatar({

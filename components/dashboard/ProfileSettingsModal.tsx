@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Loader2 } from 'lucide-react';
-import { authClient } from '@/lib/auth-client';
+import { authClient, redirectAfterSignOut } from '@/lib/auth-client';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -306,7 +306,7 @@ export function ProfileSettingsModal({ isOpen, onClose, currentImage, userName }
                   await authClient.signOut({
                     fetchOptions: {
                       onSuccess: () => {
-                        window.location.href = '/login';
+                        redirectAfterSignOut('/login');
                       }
                     }
                   });

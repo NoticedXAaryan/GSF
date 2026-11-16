@@ -6,6 +6,7 @@ test-results/
 .DS_Store
 *.log
 *.tsbuildinfo
+tsc_output.txt
 .env*
 !.env.example
 drizzle/meta/
